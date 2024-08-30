@@ -41,7 +41,7 @@ namespace MonoStereo.Audio
 
         public SoundEffectReader(string fileName)
         {
-            string filePath = $"Assets/{fileName}.xnb";
+            string filePath = $"{fileName}.xnb";
             if (!File.Exists(filePath))
                 throw new ArgumentException($"Specified file not found! - {filePath}");
 

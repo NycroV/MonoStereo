@@ -6,6 +6,9 @@
     <Authors>Nycro</Authors>
     <Company>$(AssemblyName)</Company>
     <Description>A NAudio based audio engine for MonoGame.</Description>
+    <Version>1.0.2</Version>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
     <None Include="Vorbis\NVorbis\NVorbis.csproj" />

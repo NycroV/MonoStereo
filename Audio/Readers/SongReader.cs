@@ -38,7 +38,7 @@ namespace MonoStereo.Audio
 
         public SongReader(string fileName)
         {
-            string filePath = $"Assets/{fileName}.xnb";
+            string filePath = $"{fileName}.xnb";
             if (!File.Exists(filePath))
                 throw new ArgumentException($"Specified file not found! - {filePath}");
 
@@ -48,7 +48,7 @@ namespace MonoStereo.Audio
             using (NVorbisReader commentReader = new(filePath))
             {
                 foreach (var c in commentReader.Tags.All)
-                    Comments.Add(c.Key, c.Value[0]);
+                    comments.Add(c.Key, c.Value[0]);
             }
 
             OggReader = new(filePath);
