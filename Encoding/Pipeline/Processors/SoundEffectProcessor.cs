@@ -3,7 +3,7 @@
 namespace MonoStereo.Pipeline
 {
     [ContentProcessor(DisplayName = "Sound Effect - MonoStereo")]
-    public class SoundEffectProcessor : ContentProcessor<AudioFileReader, WavWriter>
+    public class MonoStereoSoundEffectProcessor : ContentProcessor<AudioFileReader, WavWriter>
     {
         public override WavWriter Process(AudioFileReader input, ContentProcessorContext context)
         {

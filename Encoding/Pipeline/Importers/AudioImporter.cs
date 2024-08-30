@@ -2,7 +2,7 @@
 
 namespace MonoStereo.Pipeline
 {
-    [ContentImporter(".wav", ".mp3", ".ogg", DefaultProcessor = nameof(SongProcessor), DisplayName = "Audio Importer - MonoStereo")]
+    [ContentImporter(".wav", ".mp3", ".ogg", DefaultProcessor = nameof(MonoStereoSongProcessor), DisplayName = "Audio Importer - MonoStereo")]
     public class MonoStereoImporter : ContentImporter<AudioFileReader>
     {
         public override AudioFileReader Import(string filename, ContentImporterContext context)

@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace MonoStereo.Pipeline
 {
     [ContentProcessor(DisplayName = "Song - MonoStereo")]
-    public class SongProcessor : ContentProcessor<AudioFileReader, OggWriter>
+    public class MonoStereoSongProcessor : ContentProcessor<AudioFileReader, OggWriter>
     {
         [DefaultValue(5)]
         public int Quality;
