@@ -3,6 +3,7 @@ using OggVorbisEncoder;
 using System.IO;
 using System;
 using Microsoft.Xna.Framework.Content.Pipeline;
+using Microsoft.Xna.Framework;
 
 namespace MonoStereo.Pipeline
 {
@@ -11,6 +12,7 @@ namespace MonoStereo.Pipeline
         public string FileName { get; set; }
         public AudioFileReader Reader { get; set; }
         public ContentBuildLogger Logger { get; set; }
+        public int Quality { get; set; }
 
         #region Vorbis Stuff
 
@@ -66,7 +68,8 @@ namespace MonoStereo.Pipeline
         private void InitOggStream(int sampleRate, int channels, out OggStream oggStream, out ProcessingState processingState)
         {
             // Stores all the static vorbis bitstream settings
-            var info = VorbisInfo.InitVariableBitRate(channels, sampleRate, 0.5f);
+            float quality = MathHelper.Clamp(Quality, 1f, 10f) / 10f;
+            var info = VorbisInfo.InitVariableBitRate(channels, sampleRate, quality);
 
             // set up our packet->stream encoder
             var serial = new Random().Next();
