@@ -1,25 +1,19 @@
-﻿using CARDS.MonoStereo.Encoding;
-using MonoStereo.Encoding;
-using MonoStereo.SampleProviders;
+﻿using MonoStereo.Encoding;
 using NAudio.Wave;
-using NVorbis;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MonoStereo.Audio
+namespace MonoStereo.AudioSources.Sounds
 {
     public class SoundEffectReader : ISoundEffectSource
     {
         public string FileName { get; private set; }
 
-        public WavReader WavReader { get; private set; }
+        public SoundEffectFileReader WavReader { get; private set; }
 
-        public ImmutableDictionary<string, string> Comments { get => WavReader.Comments; }
+        public Dictionary<string, string> Comments { get; }
 
         public WaveFormat WaveFormat { get => WavReader.WaveFormat; }
 
@@ -48,7 +42,9 @@ namespace MonoStereo.Audio
             FileName = fileName;
             WavReader = new(filePath);
 
+            Comments = WavReader.Comments.ToDictionary();
             Comments.ParseLoop(out long loopStart, out long loopEnd);
+
             LoopStart = loopStart;
             LoopEnd = loopEnd;
         }
@@ -64,7 +60,7 @@ namespace MonoStereo.Audio
                 if (IsLooped && LoopEnd != -1)
                     endIndex = LoopEnd;
 
-                long samplesAvailable = (endIndex - Position) / AudioStandards.BytesPerSample;
+                long samplesAvailable = endIndex - Position;
                 long samplesRemaining = count - samplesCopied;
 
                 int samplesToCopy = (int)Math.Min(samplesAvailable, samplesRemaining);
@@ -77,7 +73,6 @@ namespace MonoStereo.Audio
                     Position = startIndex;
                 }
             }
-
             while (IsLooped && samplesCopied < count);
 
             return samplesCopied;

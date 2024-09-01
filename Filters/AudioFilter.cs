@@ -1,12 +1,22 @@
 ﻿using MonoStereo.SampleProviders;
 using NAudio.Wave;
+using System;
 using System.Collections.Generic;
 
 namespace MonoStereo.Filters
 {
-    public abstract class AudioFilter : ISampleProvider
+    public enum FilterPriority
+    {
+        ApplyFirst,
+        None,
+        ApplyLast
+    }
+
+    public abstract class AudioFilter : ISampleProvider, IDisposable
     {
         public virtual ISampleProvider Provider { get; set; }
+
+        public virtual FilterPriority Priority { get => FilterPriority.None; }
 
         public WaveFormat WaveFormat => Provider.WaveFormat;
 
@@ -26,6 +36,8 @@ namespace MonoStereo.Filters
         public virtual void Apply(MonoStereoProvider provider) { }
 
         public virtual void Unapply(MonoStereoProvider provider) { }
+
+        public virtual void Dispose() => GC.SuppressFinalize(this);
 
         public int Read(float[] buffer, int offset, int count)
         {

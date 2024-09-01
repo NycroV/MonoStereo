@@ -1,14 +1,11 @@
-﻿using CARDS.MonoStereo.Encoding;
-using MonoStereo.Encoding;
-using MonoStereo.SampleProviders;
+﻿using MonoStereo.Encoding;
 using NAudio.Wave;
-using NVorbis;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 
-namespace MonoStereo.Audio
+namespace MonoStereo.AudioSources.Songs
 {
     public class SongReader : ISongSource
     {
@@ -16,7 +13,7 @@ namespace MonoStereo.Audio
 
         public OggReader OggReader { get; private set; }
 
-        public ImmutableDictionary<string, string> Comments { get; private set; }
+        public Dictionary<string, string> Comments { get; private set; }
 
         public WaveFormat WaveFormat { get => OggReader.WaveFormat; }
 
@@ -26,8 +23,8 @@ namespace MonoStereo.Audio
 
         public long Position
         {
-            get => OggReader.SamplePosition;
-            set => OggReader.SamplePosition = value;
+            get => OggReader.Position;
+            set => OggReader.Position = value;
         }
 
         public long LoopStart { get; private set; } = -1;
@@ -43,17 +40,10 @@ namespace MonoStereo.Audio
                 throw new ArgumentException($"Specified file not found! - {filePath}");
 
             FileName = fileName;
-            Dictionary<string, string> comments = [];
-
-            using (NVorbisReader commentReader = new(filePath))
-            {
-                foreach (var c in commentReader.Tags.All)
-                    comments.Add(c.Key, c.Value[0]);
-            }
 
             OggReader = new(filePath);
-            comments.ParseLoop(out long loopStart, out long loopEnd);
-            Comments = comments.ToImmutableDictionary();
+            Comments = OggReader.Comments.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.FirstOrDefault(string.Empty));
+            Comments.ParseLoop(out long loopStart, out long loopEnd);
 
             LoopStart = loopStart;
             LoopEnd = loopEnd;
@@ -70,7 +60,7 @@ namespace MonoStereo.Audio
                 if (IsLooped && LoopEnd != -1)
                     endIndex = LoopEnd;
 
-                long samplesAvailable = (endIndex - Position) / AudioStandards.BytesPerSample;
+                long samplesAvailable = endIndex - Position;
                 long samplesRemaining = count - samplesCopied;
 
                 int samplesToCopy = (int)Math.Min(samplesAvailable, samplesRemaining);
@@ -83,7 +73,6 @@ namespace MonoStereo.Audio
                     Position = startIndex;
                 }
             }
-
             while (IsLooped && samplesCopied < count);
 
             return samplesCopied;

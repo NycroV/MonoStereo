@@ -271,7 +271,7 @@ namespace NVorbis.Ogg
             var pgIdx = pageIndex;
             var pktIdx = packetIndex;
 
-            while (pktIdx < (isContinuation ? 1: 0))
+            while (pktIdx < (isContinuation ? 1 : 0))
             {
                 // can't merge across resync
                 if (isContinuation && isResync) return false;

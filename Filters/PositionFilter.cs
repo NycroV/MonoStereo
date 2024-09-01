@@ -35,7 +35,7 @@ namespace MonoStereo.Filters
                 for (int i = 0; i < samplesRead; i++)
                     buffer[offset + i] *= volume;
             }
-            
+
             if (pan != 0f)
             {
                 float normPan = (-pan + 1f) / 2f;

@@ -1,9 +1,8 @@
-﻿using MonoStereo;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CARDS.MonoStereo.Encoding
+namespace MonoStereo.Encoding
 {
     public static class LoopParser
     {
@@ -12,20 +11,14 @@ namespace CARDS.MonoStereo.Encoding
             // Check for looping tags
             string loopStartKey = comments.Keys.FirstOrDefault(k => k.Equals("LOOPSTART", StringComparison.OrdinalIgnoreCase), null);
             if (loopStartKey is not null)
-            {
-                long loopstart = long.Parse(comments[loopStartKey]);
-                loopStart = loopstart * AudioStandards.BytesPerSample;
-            }
+                loopStart = long.Parse(comments[loopStartKey]);
 
             else
                 loopStart = -1;
 
             string loopEndKey = comments.Keys.FirstOrDefault(k => k.Equals("LOOPEND", StringComparison.OrdinalIgnoreCase), null);
             if (loopEndKey is not null)
-            {
-                long loopend = long.Parse(comments[loopEndKey]);
-                loopEnd = loopend * AudioStandards.BytesPerSample;
-            }
+                loopEnd = long.Parse(comments[loopEndKey]);
 
             else
             {
@@ -33,8 +26,7 @@ namespace CARDS.MonoStereo.Encoding
                 if (loopLengthKey is not null)
                 {
                     long looplength = long.Parse(comments[loopLengthKey]);
-                    long loopend = loopStart + (looplength * AudioStandards.BytesPerSample);
-                    loopEnd = loopend;
+                    loopEnd = loopStart + looplength;
                 }
 
                 else

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OggVorbisEncoder.Setup.Templates.Residue;
+﻿namespace OggVorbisEncoder.Setup.Templates.Residue;
 
 internal class Shared
 {

@@ -1,16 +1,16 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
-using NAudio.Wave;
+using MonoStereo.Pipeline;
 using System.IO;
 
-namespace MonoStereo.Pipeline
+namespace MonoStereo.Encoding
 {
-    public class WavWriter
+    public class SoundEffectFileWriter
     {
         public string FileName { get; set; }
         public AudioFileReader Reader { get; set; }
         public ContentBuildLogger Logger { get; set; }
 
-        public void WriteToWav(ISampleProvider inputStream, Stream outputStream)
+        public void WriteToWav(NAudio.Wave.ISampleProvider inputStream, Stream outputStream)
         {
             int writeBufferSize = inputStream.WaveFormat.SampleRate;
             float[] buffer = new float[writeBufferSize];

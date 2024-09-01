@@ -12,7 +12,7 @@ namespace MonoStereo.Filters
             set
             {
                 speed = value;
-                resampler.SetRates(AudioStandards.StandardSampleRate, AudioStandards.StandardSampleRate / speed);
+                resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
             }
         }
 
@@ -29,11 +29,11 @@ namespace MonoStereo.Filters
 
         public override int ModifyRead(float[] buffer, int offset, int count)
         {
-            int num = count / AudioStandards.StandardChannelCount;
-            int num2 = resampler.ResamplePrepare(num, AudioStandards.StandardChannelCount, out float[] inbuffer, out int inbufferOffset);
+            int num = count / AudioStandards.ChannelCount;
+            int num2 = resampler.ResamplePrepare(num, AudioStandards.ChannelCount, out float[] inbuffer, out int inbufferOffset);
 
-            int nsamples_in = Provider.Read(inbuffer, inbufferOffset, num2 * AudioStandards.StandardChannelCount) / AudioStandards.StandardChannelCount;
-            return resampler.ResampleOut(buffer, offset, nsamples_in, num, AudioStandards.StandardChannelCount) * AudioStandards.StandardChannelCount;
+            int nsamples_in = Provider.Read(inbuffer, inbufferOffset, num2 * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
+            return resampler.ResampleOut(buffer, offset, nsamples_in, num, AudioStandards.ChannelCount) * AudioStandards.ChannelCount;
         }
     }
 }

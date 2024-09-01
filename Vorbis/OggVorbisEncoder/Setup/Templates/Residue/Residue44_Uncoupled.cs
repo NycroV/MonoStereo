@@ -1,6 +1,4 @@
 ﻿using Blocks = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.Blocks;
-
-using CN1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.ChapterNeg1;
 using C0 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.Chapter0;
 using C1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.Chapter1;
 using C2 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.Chapter2;
@@ -11,6 +9,7 @@ using C6 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.Chapte
 using C7 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.Chapter7;
 using C8 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.Chapter8;
 using C9 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.Chapter9;
+using CN1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Uncoupled.ChapterNeg1;
 
 namespace OggVorbisEncoder.Setup.Templates.Residue;
 

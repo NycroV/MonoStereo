@@ -3,7 +3,7 @@ using NAudio.Wave;
 using System;
 using System.Collections.Immutable;
 
-namespace MonoStereo.Audio
+namespace MonoStereo.AudioSources.Sounds
 {
     public class CachedSoundEffect : IDisposable
     {
@@ -21,16 +21,18 @@ namespace MonoStereo.Audio
 
         public CachedSoundEffect(string fileName)
         {
-            using var fileReader = new WavReader(fileName);
+            using var fileReader = new SoundEffectFileReader(fileName);
 
             FileName = fileName;
             WaveFormat = fileReader.WaveFormat;
 
-            var buffer = new float[fileReader.Length / AudioStandards.BytesPerSample];
+            var buffer = new float[fileReader.Length];
             fileReader.Read(buffer, 0, buffer.Length);
 
             AudioData = buffer;
             Comments = fileReader.Comments;
+
+            AudioManager.CachedSounds.Add(this);
         }
 
         public SoundEffect GetInstance() => new(this);
@@ -44,6 +46,8 @@ namespace MonoStereo.Audio
 
         public void Dispose()
         {
+            AudioManager.CachedSounds.Remove(this);
+
             FileName = null;
             WaveFormat = null;
             AudioData = null;

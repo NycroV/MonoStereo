@@ -7,10 +7,6 @@ namespace MonoStereo.SampleProviders
     {
         public long Position { get; set; }
 
-        public void Seek(TimeSpan position)
-        {
-            long samplePos = (long)(position.TotalSeconds * WaveFormat.SampleRate) * WaveFormat.Channels;
-            Position = samplePos * AudioStandards.BytesPerSample;
-        }
+        public void Seek(TimeSpan position) => Position = (long)(position.TotalSeconds * WaveFormat.SampleRate) * WaveFormat.Channels;
     }
 }

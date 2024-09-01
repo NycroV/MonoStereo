@@ -95,7 +95,7 @@ namespace NVorbis
                 x *= x;
                 array[rightbegin + i] = (float)Math.Sin(x * M_PI2);
             }
-        
+
             return array;
         }
 
@@ -107,7 +107,7 @@ namespace NVorbis
             var packetStartIndex = blockSize / 4 - leftOverlapHalfSize;
             var packetTotalLength = blockSize / 4 * 3 + rightOverlapHalfSize;
             var packetValidLength = packetTotalLength - rightOverlapHalfSize * 2;
-        
+
             return new OverlapInfo
             {
                 PacketStartIndex = packetStartIndex,

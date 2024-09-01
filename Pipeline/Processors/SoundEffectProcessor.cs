@@ -1,13 +1,14 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
+using MonoStereo.Encoding;
 
 namespace MonoStereo.Pipeline
 {
     [ContentProcessor(DisplayName = "Sound Effect - MonoStereo")]
-    public class MonoStereoSoundEffectProcessor : ContentProcessor<AudioFileReader, WavWriter>
+    public class MonoStereoSoundEffectProcessor : ContentProcessor<AudioFileReader, SoundEffectFileWriter>
     {
-        public override WavWriter Process(AudioFileReader input, ContentProcessorContext context)
+        public override SoundEffectFileWriter Process(AudioFileReader input, ContentProcessorContext context)
         {
-            WavWriter file = new()
+            SoundEffectFileWriter file = new()
             {
                 FileName = context.OutputFilename,
                 Reader = input,

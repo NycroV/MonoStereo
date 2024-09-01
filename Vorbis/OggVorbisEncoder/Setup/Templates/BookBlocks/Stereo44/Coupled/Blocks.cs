@@ -1,5 +1,4 @@
-﻿using CN1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.ChapterNeg1;
-using C0 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter0;
+﻿using C0 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter0;
 using C1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter1;
 using C2 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter2;
 using C3 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter3;
@@ -9,10 +8,10 @@ using C6 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter6
 using C7 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter7;
 using C8 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter8;
 using C9 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.Chapter9;
-
-using MCN1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.ManagedChapterNeg1;
+using CN1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.ChapterNeg1;
 using MC0 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.ManagedChapter0;
 using MC1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.ManagedChapter1;
+using MCN1 = OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled.ManagedChapterNeg1;
 
 namespace OggVorbisEncoder.Setup.Templates.BookBlocks.Stereo44.Coupled;
 

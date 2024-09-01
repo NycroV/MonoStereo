@@ -9,7 +9,7 @@ namespace MonoStereo.Filters
     {
         private TimeSpan stutterLength = stutterLength;
 
-        private int sampleCount = (int)(stutterLength.TotalSeconds * AudioStandards.StandardSampleRate);
+        private int sampleCount = (int)(stutterLength.TotalSeconds * AudioStandards.SampleRate);
 
         public TimeSpan StutterLength
         {
@@ -17,7 +17,7 @@ namespace MonoStereo.Filters
             set
             {
                 stutterLength = value;
-                sampleCount = (int)(stutterLength.TotalSeconds * AudioStandards.StandardSampleRate);
+                sampleCount = (int)(stutterLength.TotalSeconds * AudioStandards.SampleRate);
             }
         }
 

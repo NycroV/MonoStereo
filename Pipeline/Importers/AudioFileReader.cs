@@ -1,10 +1,10 @@
 ﻿using ATL;
+using MonoStereo.Encoding;
 using NAudio.Wave;
-using NVorbis;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System;
-using MonoStereo.Encoding;
+using System.Linq;
 
 namespace MonoStereo.Pipeline
 {
@@ -23,14 +23,10 @@ namespace MonoStereo.Pipeline
             get
             {
                 if (vorbisBased)
-                {
                     return vorbisReader.WaveFormat;
-                }
 
                 else
-                {
                     return fileReader.WaveFormat;
-                }
             }
         }
 
@@ -39,14 +35,10 @@ namespace MonoStereo.Pipeline
             get
             {
                 if (vorbisBased)
-                {
                     return vorbisReader.Length;
-                }
 
                 else
-                {
                     return fileReader.Length;
-                }
             }
         }
 
@@ -55,53 +47,40 @@ namespace MonoStereo.Pipeline
             get
             {
                 if (vorbisBased)
-                {
                     return vorbisReader.Position;
-                }
 
                 else
-                {
                     return fileReader.Position;
-                }
             }
 
             set
             {
                 if (vorbisBased)
-                {
                     vorbisReader.Position = value;
-                }
 
                 else
-                {
                     fileReader.Position = value;
-                }
             }
         }
 
         public AudioFileReader(string fileName)
         {
-            Comments = [];
-            void AddComment(string name, string value)
-            {
-                if (!string.IsNullOrWhiteSpace(value))
-                    Comments.Add(name, value);
-            }
-
             if (Path.GetExtension(fileName).Equals(".ogg", StringComparison.OrdinalIgnoreCase))
             {
-                using (NVorbisReader commentReader = new(fileName))
-                {
-                    foreach (var c in commentReader.Tags.All)
-                        AddComment(c.Key, c.Value[0]);
-                }
-
                 vorbisBased = true;
                 vorbisReader = new OggReader(fileName);
+                Comments = vorbisReader.Comments.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.FirstOrDefault(string.Empty));
             }
 
             else
             {
+                Comments = [];
+                void AddComment(string name, string value)
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                        Comments.Add(name, value);
+                }
+
                 Track track = new(fileName);
 
                 AddComment("Artist", track.Artist);
@@ -117,7 +96,7 @@ namespace MonoStereo.Pipeline
             }
         }
 
-        public int Read(float[] buffer, int offset, int count) => vorbisBased ? vorbisReader.Read(buffer, offset, count) : fileReader.Read(buffer, offset, count); 
+        public int Read(float[] buffer, int offset, int count) => vorbisBased ? vorbisReader.Read(buffer, offset, count) : fileReader.Read(buffer, offset, count);
 
         public override int Read(byte[] buffer, int offset, int count) => vorbisBased ? vorbisReader.Read(buffer, offset, count) : fileReader.Read(buffer, offset, count);
     }

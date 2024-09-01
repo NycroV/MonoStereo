@@ -5,11 +5,18 @@
     <Title>MonoStereo</Title>
     <Authors>Nycro</Authors>
     <Company>$(AssemblyName)</Company>
-    <Description>A NAudio based audio engine for MonoGame.</Description>
-    <Version>1.0.2</Version>
+    <Description>An NAudio based audio engine for MonoGame.</Description>
+    <Version>1.1.6</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <PackageIcon>Icon.png</PackageIcon>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Icon.ico" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Vorbis\NVorbis\NVorbis.csproj" />
     <None Include="Vorbis\OggVorbisEncoder\OggVorbisEncoder.csproj" />
@@ -23,5 +30,19 @@
     </PackageReference>
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="z440.atl.core" Version="6.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 </Project>

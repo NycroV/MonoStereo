@@ -1,5 +1,5 @@
-﻿using System;
-using OggVorbisEncoder.Setup;
+﻿using OggVorbisEncoder.Setup;
+using System;
 
 namespace OggVorbisEncoder;
 

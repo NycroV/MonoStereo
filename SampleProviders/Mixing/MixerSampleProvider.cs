@@ -1,5 +1,4 @@
-﻿using MonoStereo;
-using NAudio.Utils;
+﻿using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
@@ -10,7 +9,7 @@ namespace MonoStereo.SampleProviders
     /// <summary>
     /// A sample provider mixer, allowing inputs to be added and removed
     /// </summary>
-    public class MixerSampleProvider : ISampleProvider
+    public class MixerSampleProvider : ISampleProvider, IDisposable
     {
         private readonly List<ISampleProvider> _sources;
 
@@ -111,6 +110,19 @@ namespace MonoStereo.SampleProviders
         }
 
         /// <summary>
+        /// Sets the samples providers to be used by this mixer
+        /// </summary>
+        /// <param name="sources">Mixer inputs</param>
+        public void SetMixerInputs(IEnumerable<ISampleProvider> sources)
+        {
+            lock (_sources)
+            {
+                _sources.Clear();
+                _sources.AddRange(sources);
+            }
+        }
+
+        /// <summary>
         /// Removes all mixer inputs
         /// </summary>
         public void RemoveAllMixerInputs()
@@ -175,6 +187,19 @@ namespace MonoStereo.SampleProviders
                 outputSamples = count;
             }
             return outputSamples;
+        }
+
+        public void Dispose()
+        {
+            lock (_sources)
+            {
+                _sources.Clear();
+            }
+
+            _sourceBuffer = null;
+            WaveFormat = null;
+
+            GC.SuppressFinalize(this);
         }
     }
 }

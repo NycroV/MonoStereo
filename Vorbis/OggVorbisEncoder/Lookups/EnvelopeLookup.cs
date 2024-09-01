@@ -1,6 +1,6 @@
-﻿using System;
+﻿using OggVorbisEncoder.Setup;
+using System;
 using System.Linq;
-using OggVorbisEncoder.Setup;
 
 namespace OggVorbisEncoder.Lookups;
 

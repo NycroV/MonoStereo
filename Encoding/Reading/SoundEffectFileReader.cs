@@ -7,11 +7,11 @@ using System.IO;
 
 namespace MonoStereo.Encoding
 {
-    public class WavReader : ISeekableSampleProvider, IDisposable
+    public class SoundEffectFileReader : ISeekableSampleProvider, IDisposable
     {
         public string FileName { get; private set; }
 
-        public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.StandardSampleRate, AudioStandards.StandardChannelCount);
+        public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.SampleRate, AudioStandards.ChannelCount);
 
         public BinaryReader Stream { get; private set; }
 
@@ -19,17 +19,17 @@ namespace MonoStereo.Encoding
 
         private readonly long bufferOffset;
 
-        public long Length => Stream.BaseStream.Length - bufferOffset;
+        public long Length => (Stream.BaseStream.Length - bufferOffset) / AudioStandards.BytesPerSample;
 
         public long Position
         {
-            get => Stream.BaseStream.Position - bufferOffset;
-            set => Stream.BaseStream.Position = value + bufferOffset;
+            get => (Stream.BaseStream.Position - bufferOffset) / AudioStandards.BytesPerSample;
+            set => Stream.BaseStream.Position = (value * AudioStandards.BytesPerSample) + bufferOffset;
         }
 
-        public WavReader(string fileName)
+        public SoundEffectFileReader(string fileName)
         {
-            string filePath = $"Assets/{fileName}.xnb";
+            string filePath = $"{fileName}.xnb";
             if (!File.Exists(filePath))
                 throw new ArgumentException($"Specified file not found! - {filePath}");
 

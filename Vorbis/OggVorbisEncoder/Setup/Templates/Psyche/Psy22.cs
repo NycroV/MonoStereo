@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OggVorbisEncoder.Setup.Templates.Psyche;
+﻿namespace OggVorbisEncoder.Setup.Templates.Psyche;
 
 internal class Psy22
 {

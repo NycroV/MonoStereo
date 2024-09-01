@@ -1,8 +1,8 @@
-﻿using System;
+﻿using OggVorbisEncoder.Setup;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
-using OggVorbisEncoder.Setup;
 
 namespace OggVorbisEncoder.Lookups;
 

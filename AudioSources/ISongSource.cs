@@ -1,13 +1,14 @@
-﻿using NAudio.Wave;
-using System.Collections.Immutable;
+﻿using MonoStereo.SampleProviders;
+using NAudio.Wave;
+using System.Collections.Generic;
 
-namespace MonoStereo.SampleProviders
+namespace MonoStereo.AudioSources
 {
     public interface ISongSource : ISeekableSampleProvider
     {
         public PlaybackState PlaybackState { get; set; }
 
-        public ImmutableDictionary<string, string> Comments { get; }
+        public Dictionary<string, string> Comments { get; }
 
         public long Length { get; }
 

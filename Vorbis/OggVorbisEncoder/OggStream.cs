@@ -222,7 +222,7 @@ public class OggStream
                     vals++;
                     break;
                 }
-            }
+        }
         else
         {
             // The extra packets_done, packet_just_done logic here attempts to do two things:

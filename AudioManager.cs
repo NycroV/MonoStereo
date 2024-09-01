@@ -1,13 +1,15 @@
-﻿using NAudio;
+﻿using MonoStereo.AudioSources.Sounds;
+using MonoStereo.SampleProviders;
+using NAudio;
 using NAudio.Wave;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using MonoStereo.SampleProviders;
-using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace MonoStereo
 {
@@ -24,6 +26,8 @@ namespace MonoStereo
         public static AudioMixer MusicMixer { get; private set; }
 
         public static AudioMixer MasterMixer { get; private set; }
+
+        internal static List<CachedSoundEffect> CachedSounds { get; private set; } = [];
 
         /// <summary>
         /// Controls the volume of sound effects
@@ -52,22 +56,21 @@ namespace MonoStereo
             set => MasterMixer.Volume = value;
         }
 
-        public static IEnumerable<SoundEffect> ActiveSounds { get => SoundMixer.Inputs.MixerInputs.Cast<SoundEffect>(); }
+        public static readonly ConcurrentBag<Song> ActiveSongs = [];
 
-        public static IEnumerable<Song> ActiveSongs { get => MusicMixer.Inputs.MixerInputs.Cast<Song>(); }
-
-        private static readonly ConcurrentQueue<SoundEffect> queuedSounds = new();
-
-        private static readonly ConcurrentQueue<Song> queuedSongs = new();
+        public static readonly ConcurrentBag<SoundEffect> ActiveSoundEffects = [];
 
         /// <summary>
         /// Initializes the MonoStereo Audio Engine
         /// </summary>
-        /// <param name="shutdownFunction">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
+        /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
+        /// <param name="latency">The desired latency, in ms.<br/>
+        /// Higher latency will create slightly delayed audio playback, but can help reduce laggy/choppy audio when lots of post-processing or filters are involved.<br/>
+        /// 100ms is typically fine for most purposes.</param>
         /// <param name="masterVolume">The master mixer volume</param>
         /// <param name="musicVolume">The volume for music</param>
         /// <param name="soundEffectVolume">The volume for sound effects</param>
-        public static void Initialize(Func<bool> shutdownFunction, float masterVolume = 1f, float musicVolume = 1f, float soundEffectVolume = 1f)
+        public static void Initialize(Func<bool> shouldShutdown, int latency = 100, float masterVolume = 1f, float musicVolume = 1f, float soundEffectVolume = 1f)
         {
             Time.Start();
 
@@ -90,83 +93,46 @@ namespace MonoStereo
                 song.PlaybackState = PlaybackState.Stopped;
             };
 
-            Output = new()
-            {
-                DesiredLatency = AudioStandards.StandardLatency
-            };
-
+            Output = new() { DesiredLatency = latency };
             Output.Init(MasterMixer);
             Output.Play();
 
-            AudioThread = new(() =>
-            {
-                while (!shutdownFunction())
-                    Update();
-            });
-
+            AudioThread = new(() => RunAudioThread(shouldShutdown));
             AudioThread.Start();
         }
 
-        public static void Update()
+        internal static void RunAudioThread(Func<bool> shouldShutdown)
         {
-            #region Sound Updating
+            while (!shouldShutdown())
+                Update();
 
-            while (queuedSounds.TryDequeue(out SoundEffect sound))
-            {
-                if (sound is null)
-                    continue;
+            Output.Dispose();
+            MasterMixer.Dispose();
+            MusicMixer.Dispose();
+            SoundMixer.Dispose();
 
-                try { SoundMixer.AddInput(sound); }
-                catch { }
-            }
-
-            var sounds = ActiveSounds;
-            for (int i = 0; i < sounds.Count(); i++)
-            {
-                var sound = sounds.ElementAt(i);
-
-                if (sound.PlaybackState == PlaybackState.Stopped)
-                {
-                    SoundMixer.Inputs.RemoveMixerInput(sound);
-                    sound.Close();
-
-                    i--;
-                }
-            }
-
-            #endregion
-
-            #region Song Updating
-
-            while (queuedSongs.TryDequeue(out Song song))
-            {
-                if (song is null)
-                    continue;
-
-                try { MusicMixer.AddInput(song); }
-                catch { }
-            }
-
-            var songs = ActiveSongs;
-            for (int i = 0; i < songs.Count(); i++)
-            {
-                var song = songs.ElementAt(i);
-
-                if (song.PlaybackState == PlaybackState.Stopped)
-                {
-                    MusicMixer.Inputs.RemoveMixerInput(song);
-                    song.Close();
-
-                    i--;
-                }
-            }
-
-            #endregion
+            foreach (CachedSoundEffect sound in CachedSounds.ToArray())
+                sound.Dispose();
         }
 
-        public static void QueuePlay(SoundEffect sound) => queuedSounds.Enqueue(sound);
+        internal static void Update()
+        {
+            static void UpdateInputs(AudioMixer mixer, IEnumerable<ISampleProvider> newInputs)
+            {
+                var inputs = mixer.Inputs.MixerInputs.Cast<MonoStereoProvider>();
 
-        public static void QueuePlay(Song song) => queuedSongs.Enqueue(song);
+                foreach (var input in inputs)
+                {
+                    if (input.PlaybackState == PlaybackState.Stopped)
+                        input.Close();
+                }
+
+                mixer.Inputs.SetMixerInputs(newInputs);
+            }
+
+            UpdateInputs(MusicMixer, ActiveSongs.ToArray());
+            UpdateInputs(SoundMixer, ActiveSoundEffects.ToArray());
+        }
 
         #region Devices
 

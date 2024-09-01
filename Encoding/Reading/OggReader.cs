@@ -1,26 +1,18 @@
-﻿using System;
-using System.Linq;
+﻿using NAudio.Vorbis;
+using System;
+using System.Collections.Generic;
 using Wave = NAudio.Wave;
-using NAudio.Vorbis;
 
 namespace MonoStereo.Encoding
 {
     // From NAudio.Vorbis
-    public class OggReader : Wave.WaveStream, Wave.ISampleProvider
+    public class OggReader(System.IO.Stream sourceStream, bool closeOnDispose = false) : Wave.WaveStream, Wave.ISampleProvider
     {
-        public VorbisSampleProvider SampleProvider;
+        public VorbisSampleProvider SampleProvider = new(sourceStream, closeOnDispose);
 
         public OggReader(string fileName)
             : this(System.IO.File.OpenRead(fileName), true)
-        {
-        }
-
-        public OggReader(System.IO.Stream sourceStream, bool closeOnDispose = false)
-        {
-            // To maintain consistent semantics with v1.1, we don't expose the events and auto-advance / stream removal features of VorbisSampleProvider.
-            // If one wishes to use those features, they should really use VorbisSampleProvider directly...
-            SampleProvider = new VorbisSampleProvider(sourceStream, closeOnDispose);
-        }
+        { }
 
         protected override void Dispose(bool disposing)
         {
@@ -29,27 +21,15 @@ namespace MonoStereo.Encoding
                 SampleProvider?.Dispose();
                 SampleProvider = null;
             }
-            
+
             base.Dispose(disposing);
         }
 
         public override Wave.WaveFormat WaveFormat => SampleProvider.WaveFormat;
 
-        public override long Length => SampleProvider.Length * SampleProvider.WaveFormat.BlockAlign;
+        public override long Length => SampleProvider.Length;
 
         public override long Position
-        {
-            get => SampleProvider.SamplePosition * SampleProvider.WaveFormat.BlockAlign;
-            set
-            {
-                if (!SampleProvider.CanSeek) throw new InvalidOperationException("Cannot seek!");
-                if (value < 0 || value > Length) throw new ArgumentOutOfRangeException(nameof(value));
-
-                SampleProvider.Seek(value / SampleProvider.WaveFormat.BlockAlign);
-            }
-        }
-
-        public long SamplePosition
         {
             get => SampleProvider.SamplePosition;
             set => SampleProvider.SamplePosition = value;
@@ -57,7 +37,7 @@ namespace MonoStereo.Encoding
 
         // This buffer can be static because it can only be used by 1 instance per thread
         [ThreadStatic]
-        static float[] _conversionBuffer = null;
+        private static float[] _conversionBuffer = null;
 
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -68,11 +48,9 @@ namespace MonoStereo.Encoding
             count -= count % SampleProvider.WaveFormat.Channels;
 
             // get the buffer, creating a new one if none exists or the existing one is too small
-            var cb = _conversionBuffer ?? (_conversionBuffer = new float[count]);
+            var cb = _conversionBuffer ??= new float[count];
             if (cb.Length < count)
-            {
-                cb = (_conversionBuffer = new float[count]);
-            }
+                cb = _conversionBuffer = new float[count];
 
             // let Read(float[], int, int) do the actual reading; adjust count back to bytes
             int cnt = Read(cb, 0, count) * sizeof(float);
@@ -84,17 +62,7 @@ namespace MonoStereo.Encoding
             return cnt;
         }
 
-        public int Read(float[] buffer, int offset, int count)
-        {
-            if (IsParameterChange) throw new InvalidOperationException("A parameter change is pending.  Call ClearParameterChange() to clear it.");
-
-            return SampleProvider.Read(buffer, offset, count);
-        }
-
-        public bool IsParameterChange => false;
-
-        [Obsolete("Was never used and will be removed.")]
-        public void ClearParameterChange() { }
+        public int Read(float[] buffer, int offset, int count) => SampleProvider.Read(buffer, offset, count);
 
         public int StreamCount => SampleProvider.StreamCount;
 
@@ -144,13 +112,7 @@ namespace MonoStereo.Encoding
         /// <summary>
         /// Gets the comments in the current selected Vorbis stream
         /// </summary>
-        public string[] Comments => SampleProvider.Tags.All.SelectMany(k => k.Value, (kvp, Item) => $"{kvp.Key}={Item}").ToArray();
-
-        /// <summary>
-        /// Gets the number of bits read that are related to framing and transport alone
-        /// </summary>
-        [Obsolete("No longer supported.", true)]
-        public long ContainerOverheadBits => throw new NotSupportedException();
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> Comments => SampleProvider.Tags.All;
 
         /// <summary>
         /// Gets stats from each decoder stream available

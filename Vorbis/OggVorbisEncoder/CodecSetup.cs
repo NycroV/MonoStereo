@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using OggVorbisEncoder.Setup;
+﻿using OggVorbisEncoder.Setup;
+using System.Collections.Generic;
 
 namespace OggVorbisEncoder;
 

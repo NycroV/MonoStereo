@@ -29,7 +29,7 @@ namespace MonoStereo.Filters
             if (pitch == 1f)
                 return;
 
-            int sampleRate = AudioStandards.StandardSampleRate;
+            int sampleRate = AudioStandards.SampleRate;
             var left = new float[(samplesRead >> 1)];
             var right = new float[(samplesRead >> 1)];
             var index = 0;

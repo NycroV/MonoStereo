@@ -1,22 +1,26 @@
-﻿using MonoStereo.Audio;
+﻿using MonoStereo.AudioSources;
+using MonoStereo.AudioSources.Sounds;
 using MonoStereo.SampleProviders;
 using NAudio.Wave;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace MonoStereo
 {
-    public class Song(ISongSource source) : MonoStereoProvider, ISeekableSampleProvider
+    public class SoundEffect(ISoundEffectSource source) : MonoStereoProvider, ISeekableSampleProvider
     {
-        public Song(string fileName) : this(new SongReader(fileName))
+        public SoundEffect(string fileName) : this(new SoundEffectReader(fileName))
         { }
 
-        private ISongSource Source { get; set; } = source;
+        public SoundEffect(CachedSoundEffect cachedSound) : this(new CachedSoundEffectReader(cachedSound))
+        { }
+
+        private ISoundEffectSource Source { get; set; } = source;
 
         public override WaveFormat WaveFormat { get => Source.WaveFormat; }
 
-        public ImmutableDictionary<string, string> Comments { get => Source.Comments; }
+        public Dictionary<string, string> Comments { get => Source.Comments; }
 
-        public PlaybackState PlaybackState
+        public override PlaybackState PlaybackState
         {
             get => Source.PlaybackState;
             set => Source.PlaybackState = value;
@@ -61,9 +65,9 @@ namespace MonoStereo
         public void Play()
         {
             PlaybackState = PlaybackState.Playing;
-            AudioManager.QueuePlay(this);
+            AudioManager.ActiveSoundEffects.Add(this);
         }
 
-        public void Close() => Source.Close();
+        public override void Close() => Source.Close();
     }
 }

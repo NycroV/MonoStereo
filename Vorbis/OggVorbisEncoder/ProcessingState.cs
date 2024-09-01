@@ -1,6 +1,6 @@
-using System;
 using OggVorbisEncoder.Lookups;
 using OggVorbisEncoder.Setup;
+using System;
 
 namespace OggVorbisEncoder;
 

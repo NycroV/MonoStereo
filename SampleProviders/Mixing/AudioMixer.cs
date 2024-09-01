@@ -8,9 +8,11 @@ namespace MonoStereo.SampleProviders
 
         public override WaveFormat WaveFormat => Inputs.WaveFormat;
 
+        public override PlaybackState PlaybackState { get => PlaybackState.Playing; set { } }
+
         public AudioMixer(float volume, params ISampleProvider[] initialInputs)
         {
-            Inputs = new(WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.StandardSampleRate, AudioStandards.StandardChannelCount)) { ReadFully = true };
+            Inputs = new(WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.SampleRate, AudioStandards.ChannelCount)) { ReadFully = true };
 
             Volume = volume;
 
@@ -23,5 +25,7 @@ namespace MonoStereo.SampleProviders
         public void RemoveInput(ISampleProvider sampleProvider) => Inputs.RemoveMixerInput(sampleProvider);
 
         public override int ReadSource(float[] buffer, int offset, int count) => Inputs.Read(buffer, offset, count);
+
+        public override void Close() => Inputs.Dispose();
     }
 }

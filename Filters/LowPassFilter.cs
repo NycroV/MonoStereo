@@ -9,7 +9,7 @@ namespace MonoStereo.Filters
             get => _cutoffFrequency;
             set
             {
-                filter.SetLowPassFilter(AudioStandards.StandardSampleRate, value, Q);
+                filter.SetLowPassFilter(AudioStandards.SampleRate, value, Q);
                 _cutoffFrequency = value;
             }
         }
@@ -19,7 +19,7 @@ namespace MonoStereo.Filters
             get => _q;
             set
             {
-                filter.SetLowPassFilter(AudioStandards.StandardSampleRate, CutoffFrequency, value);
+                filter.SetLowPassFilter(AudioStandards.SampleRate, CutoffFrequency, value);
                 _q = value;
             }
         }
@@ -28,7 +28,7 @@ namespace MonoStereo.Filters
 
         private float _q = q;
 
-        private readonly BiQuadFilter filter = BiQuadFilter.LowPassFilter(AudioStandards.StandardSampleRate, cutoffFrequency, q);
+        private readonly BiQuadFilter filter = BiQuadFilter.LowPassFilter(AudioStandards.SampleRate, cutoffFrequency, q);
 
         public override void PostProcess(float[] buffer, int offset, int samplesRead)
         {

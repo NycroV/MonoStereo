@@ -1,5 +1,6 @@
 ﻿using NAudio.Wave;
 using NVorbis.Contracts;
+using NVorbis.Ogg;
 using System;
 using System.Collections.Generic;
 
@@ -10,7 +11,7 @@ namespace NAudio.Vorbis
     /// </summary>
     public sealed class VorbisSampleProvider : ISampleProvider, IDisposable
     {
-        private IContainerReader _containerReader;
+        private VorbisContainerReader _containerReader;
         private IStreamDecoder _streamDecoder;
         private readonly LinkedList<IStreamDecoder> _streamDecoders = new LinkedList<IStreamDecoder>();
         private bool _hasEnded;

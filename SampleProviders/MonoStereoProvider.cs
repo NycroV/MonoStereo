@@ -1,62 +1,79 @@
 ﻿using MonoStereo.Filters;
 using NAudio.Wave;
-using System.Collections.Concurrent;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MonoStereo.SampleProviders
 {
-    public abstract class MonoStereoProvider : ISampleProvider
+    public abstract class MonoStereoProvider : ISampleProvider, IDisposable
     {
         public abstract WaveFormat WaveFormat { get; }
 
-        public IEnumerable<AudioFilter> ActiveFilters { get => filters; }
-
         public float Volume
         {
-            get => ((VolumeProvider)filters[0]).Volume;
-            set => ((VolumeProvider)filters[0]).Volume = value;
+            get => ((FilterBase)filters[0]).Volume;
+            set => ((FilterBase)filters[0]).Volume = value;
         }
 
-        private readonly List<AudioFilter> filters = [];
+        public MonoStereoProvider() => filters.Add(new FilterBase(this));
 
-        private readonly ConcurrentQueue<AudioFilter> filterAddQueue = [];
+        private readonly ArrayList filters = ArrayList.Synchronized([]);
 
-        private readonly ConcurrentQueue<AudioFilter> filterRemovalQueue = [];
+        public IEnumerable<AudioFilter> Filters { get => filters.Cast<AudioFilter>(); }
 
-        public MonoStereoProvider() => filters.Add(new VolumeProvider(this)); 
+        public abstract PlaybackState PlaybackState { get; set; }
 
         public int Read(float[] buffer, int offset, int count)
         {
-            while (filterAddQueue.TryDequeue(out AudioFilter filter))
-            {
-                filters.Add(filter);
-                filter.Apply(this);
-            }
+            var sortedFilters = filters.Cast<AudioFilter>().OrderBy(filter => filter.Priority).ToArray();
 
-            while (filterRemovalQueue.TryDequeue(out AudioFilter filter))
-            {
-                filters.Remove(filter);
-                filter.Unapply(this);
-            }
+            for (int i = 1; i < sortedFilters.Length; i++)
+                sortedFilters[i].Provider = sortedFilters[i - 1];
 
-            for (int i = 1; i < filters.Count; i++)
-                filters[i].Provider = filters[i - 1];
-
-            return filters[^1].Read(buffer, offset, count);
+            return sortedFilters[^1].Read(buffer, offset, count);
         }
 
         public abstract int ReadSource(float[] buffer, int offset, int count);
 
-        public void AddFilter(AudioFilter filter) => filterAddQueue.Enqueue(filter);
+        public void AddFilter(AudioFilter filter)
+        {
+            filters.Add(filter);
+            filter.Apply(this);
+        }
 
-        public void RemoveFilter(AudioFilter filter) => filterRemovalQueue.Enqueue(filter);
+        public void RemoveFilter(AudioFilter filter)
+        {
+            filters.Remove(filter);
+            filter.Unapply(this);
+        }
+
+        public virtual void Close() { }
+
+        public void Dispose()
+        {
+            Close();
+
+            lock (filters)
+            {
+                foreach (var filter in filters.Cast<AudioFilter>())
+                    filter.Dispose();
+
+                filters.Clear();
+            }
+
+            GC.SuppressFinalize(this);
+        }
     }
 
-    file class VolumeProvider(MonoStereoProvider stereoProvider) : AudioFilter
+    file class FilterBase(MonoStereoProvider stereoProvider) : AudioFilter
     {
         private readonly MonoStereoProvider provider = stereoProvider;
 
         public override ISampleProvider Provider { get => provider; }
+
+        public override FilterPriority Priority => FilterPriority.ApplyFirst;
 
         public float Volume { get; set; } = 1f;
 

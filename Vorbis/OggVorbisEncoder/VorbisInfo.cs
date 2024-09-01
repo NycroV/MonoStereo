@@ -1,6 +1,6 @@
-using System.Linq;
 using OggVorbisEncoder.Setup;
 using OggVorbisEncoder.Setup.Templates;
+using System.Linq;
 
 namespace OggVorbisEncoder;
 

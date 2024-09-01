@@ -1,9 +1,9 @@
-﻿using MonoStereo.SampleProviders;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace MonoStereo.Audio
+namespace MonoStereo.AudioSources.Sounds
 {
     public class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ISoundEffectSource
     {
@@ -13,19 +13,13 @@ namespace MonoStereo.Audio
 
         public WaveFormat WaveFormat => CachedSoundEffect.WaveFormat;
 
-        public ImmutableDictionary<string, string> Comments => CachedSoundEffect.Comments;
+        public Dictionary<string, string> Comments { get; } = cachedSound.Comments.ToDictionary();
 
         public PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
 
-        public long Length => CachedSoundEffect.AudioData.Length * AudioStandards.BytesPerSample;
+        public long Length => CachedSoundEffect.AudioData.Length;
 
-        public long BufferPosition { get; set; } = 0;
-
-        public long Position
-        {
-            get => BufferPosition * AudioStandards.BytesPerSample;
-            set => BufferPosition = value / AudioStandards.BytesPerSample;
-        }
+        public long Position { get; set; } = 0;
 
         public long LoopStart { get => CachedSoundEffect.LoopStart; }
 
@@ -44,15 +38,15 @@ namespace MonoStereo.Audio
                 if (IsLooped && LoopEnd != -1)
                     endIndex = LoopEnd;
 
-                long samplesAvailable = (endIndex / AudioStandards.BytesPerSample) - BufferPosition;
+                long samplesAvailable = endIndex - Position;
                 long samplesRemaining = count - samplesCopied;
 
                 int samplesToCopy = (int)Math.Min(samplesAvailable, samplesRemaining);
                 if (samplesToCopy > 0)
                 {
-                    Array.Copy(CachedSoundEffect.AudioData, BufferPosition, buffer, offset + samplesCopied, samplesToCopy);
+                    Array.Copy(CachedSoundEffect.AudioData, Position, buffer, offset + samplesCopied, samplesToCopy);
                     samplesCopied += samplesToCopy;
-                    BufferPosition += samplesToCopy;
+                    Position += samplesToCopy;
                 }
 
                 if (IsLooped && Position == endIndex)
@@ -61,7 +55,6 @@ namespace MonoStereo.Audio
                     Position = startIndex;
                 }
             }
-
             while (IsLooped && samplesCopied < count);
 
             return samplesCopied;
