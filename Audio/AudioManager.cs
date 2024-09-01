@@ -2,9 +2,8 @@
 using NAudio;
 using NAudio.Wave;
 using System;
-using System.Collections.Concurrent;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -16,8 +15,6 @@ namespace MonoStereo
         private static Thread AudioThread { get; set; }
 
         private static WaveOutEvent Output { get; set; }
-
-        private static Stopwatch Time { get; set; } = new();
 
         public static AudioMixer SoundMixer { get; private set; }
 
@@ -54,9 +51,16 @@ namespace MonoStereo
             set => MasterMixer.Volume = value;
         }
 
-        public static readonly ConcurrentBag<Song> ActiveSongs = [];
+        // By using SynchronizedLists, we can ensure thread-safe access to the elements
+        // without needing to wrap anything with a lock ourselves.
 
-        public static readonly ConcurrentBag<SoundEffect> ActiveSoundEffects = [];
+        internal static readonly ArrayList activeSongs = ArrayList.Synchronized([]);
+
+        internal static readonly ArrayList activeSoundEffects = ArrayList.Synchronized([]);
+
+        public static IEnumerable<Song> ActiveSongs => activeSongs.Cast<Song>();
+
+        public static IEnumerable<SoundEffect> ActiveSoundEffects => activeSoundEffects.Cast<SoundEffect>();
 
         /// <summary>
         /// Initializes the MonoStereo Audio Engine
@@ -70,8 +74,6 @@ namespace MonoStereo
         /// <param name="soundEffectVolume">The volume for sound effects</param>
         public static void Initialize(Func<bool> shouldShutdown, int latency = 150, float masterVolume = 1f, float musicVolume = 1f, float soundEffectVolume = 1f)
         {
-            Time.Start();
-
             SoundMixer = new(soundEffectVolume);
             MusicMixer = new(musicVolume);
             MasterMixer = new(masterVolume);
@@ -104,6 +106,9 @@ namespace MonoStereo
             while (!shouldShutdown())
                 Update();
 
+            // After the `shouldShutdown` function has returned true,
+            // commense shutdown. This is done in a way such that the engine
+            // COULD be started again without the need for program reload.
             Output.Dispose();
             MasterMixer.Dispose();
             MusicMixer.Dispose();
@@ -115,21 +120,24 @@ namespace MonoStereo
 
         internal static void Update()
         {
-            static void UpdateInputs(AudioMixer mixer, IEnumerable<ISampleProvider> newInputs)
+            static void UpdateInputs(AudioMixer mixer, ArrayList newInputs)
             {
                 var inputs = mixer.Inputs.MixerInputs.Cast<MonoStereoProvider>();
 
                 foreach (var input in inputs)
                 {
+                    // Close() will remove the input from it's corresponding list,
+                    // so after this is called it will be removed from the mixer's inputs.
                     if (input.PlaybackState == PlaybackState.Stopped)
                         input.Close();
                 }
 
-                mixer.Inputs.SetMixerInputs(newInputs);
+                var sources = newInputs.Cast<ISampleProvider>();
+                mixer.Inputs.SetMixerInputs(sources);
             }
 
-            UpdateInputs(MusicMixer, ActiveSongs.ToArray());
-            UpdateInputs(SoundMixer, ActiveSoundEffects.ToArray());
+            UpdateInputs(MusicMixer, activeSongs);
+            UpdateInputs(SoundMixer, activeSoundEffects);
         }
 
         #region Devices

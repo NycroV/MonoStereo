@@ -5,6 +5,10 @@ using System.Collections.Generic;
 
 namespace MonoStereo.Filters
 {
+    // Filter priorities allow for smoother application of filters to audio.
+    // Typically, filters that modify the position of an underlying stream will have
+    // custom priority. Speed change, for example, should be applied last - as it changes
+    // the number of samples that will be read from the source on a given Read() call.
     public enum FilterPriority
     {
         ApplyFirst,
@@ -19,15 +23,6 @@ namespace MonoStereo.Filters
         public virtual FilterPriority Priority { get => FilterPriority.None; }
 
         public WaveFormat WaveFormat => Provider.WaveFormat;
-
-        public bool ClearReady { get; set; } = false;
-
-        /// <summary>
-        /// This is used for tagging this filter with data regarding any info about it, such as where it is being applied from,<br/>
-        /// a specific identifier, or any other data you may want to add. This is useful for accessing specific filters from a list, or<br/>
-        /// specific sets of filters.
-        /// </summary>
-        public readonly Dictionary<string, string> Tags = [];
 
         public virtual int ModifyRead(float[] buffer, int offset, int count) => Provider.Read(buffer, offset, count);
 

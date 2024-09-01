@@ -7,6 +7,8 @@ using System.IO;
 
 namespace MonoStereo.Encoding
 {
+    // Provides a way to read raw, uncompressed samples from a stream that is preceded by comments.
+    // This custom structure is used by the sound effect compiler in the pipeline.
     public class SoundEffectFileReader : ISeekableSampleProvider, IDisposable
     {
         public string FileName { get; private set; }
@@ -19,8 +21,14 @@ namespace MonoStereo.Encoding
 
         private readonly long bufferOffset;
 
+        /// <summary>
+        /// Length of the stream, in samples.
+        /// </summary>
         public long Length => (Stream.BaseStream.Length - bufferOffset) / AudioStandards.BytesPerSample;
 
+        /// <summary>
+        /// Current sample position of the stream.
+        /// </summary>
         public long Position
         {
             get => (Stream.BaseStream.Position - bufferOffset) / AudioStandards.BytesPerSample;

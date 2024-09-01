@@ -44,6 +44,8 @@ namespace MonoStereo
             if (PlaybackState == PlaybackState.Playing)
                 samplesRead = Source.Read(buffer, offset, count);
 
+            // If the song is paused, we don't want the mixer to think it's stopped.
+            // Fill the buffer with empty samples to imitate "no audio".
             else if (PlaybackState == PlaybackState.Paused)
             {
                 for (int i = 0; i < count; i++)
@@ -58,9 +60,16 @@ namespace MonoStereo
         public void Play()
         {
             PlaybackState = PlaybackState.Playing;
-            AudioManager.ActiveSongs.Add(this);
+            AudioManager.activeSongs.Add(this);
         }
 
-        public override void Close() => Source.Close();
+        // Close will be called after a song is marked as stopped.
+        public void Stop() => PlaybackState = PlaybackState.Stopped;
+
+        public override void Close()
+        {
+            Source.Close();
+            AudioManager.activeSongs.Remove(this);
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using NAudio.Vorbis;
+﻿using MonoStereo.SampleProviders;
+using NAudio.Vorbis;
 using System;
 using System.Collections.Generic;
 using Wave = NAudio.Wave;
@@ -6,7 +7,7 @@ using Wave = NAudio.Wave;
 namespace MonoStereo.Encoding
 {
     // From NAudio.Vorbis
-    public class OggReader(System.IO.Stream sourceStream, bool closeOnDispose = false) : Wave.WaveStream, Wave.ISampleProvider
+    public class OggReader(System.IO.Stream sourceStream, bool closeOnDispose = false) : Wave.WaveStream, ISeekableSampleProvider
     {
         public VorbisSampleProvider SampleProvider = new(sourceStream, closeOnDispose);
 
@@ -29,10 +30,16 @@ namespace MonoStereo.Encoding
 
         public override Wave.WaveFormat WaveFormat => SampleProvider.WaveFormat;
 
+        /// <summary>
+        /// Length of the stream, in samples.
+        /// </summary>
         public override long Length => SampleProvider.Length;
 
         public string FileName { get; } = string.Empty;
 
+        /// <summary>
+        /// Current sample position of the stream.
+        /// </summary>
         public override long Position
         {
             get => SampleProvider.SamplePosition;

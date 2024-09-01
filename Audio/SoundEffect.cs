@@ -44,7 +44,12 @@ namespace MonoStereo
         {
             int samplesRead = 0;
 
-            if (PlaybackState == PlaybackState.Paused)
+            if (PlaybackState == PlaybackState.Playing)
+                samplesRead = Source.Read(buffer, offset, count);
+
+            // If the sound effect is paused, we don't want the mixer to think it's stopped.
+            // Fill the buffer with empty samples to imitate "no audio".
+            else if (PlaybackState == PlaybackState.Paused)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -52,9 +57,6 @@ namespace MonoStereo
                     samplesRead++;
                 }
             }
-
-            else if (PlaybackState == PlaybackState.Playing)
-                samplesRead = Source.Read(buffer, offset, count);
 
             else
                 return 0;
@@ -65,9 +67,16 @@ namespace MonoStereo
         public void Play()
         {
             PlaybackState = PlaybackState.Playing;
-            AudioManager.ActiveSoundEffects.Add(this);
+            AudioManager.activeSoundEffects.Add(this);
         }
 
-        public override void Close() => Source.Close();
+        // Close will be called after a sound is marked as stopped.
+        public void Stop() => PlaybackState = PlaybackState.Stopped;
+
+        public override void Close()
+        {
+            Source.Close();
+            AudioManager.activeSoundEffects.Remove(this);
+        }
     }
 }
