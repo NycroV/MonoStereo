@@ -119,7 +119,7 @@ AudioManager.MasterMixer.AddFilter(filter);
 
 ### Custom Implementations
 MonoStereo supports custom implementations for songs, sounds, and filters. To use them, you can have classes inherit from `ISongSource`, `ISoundEffectSource`, and `AudioFilter`.
-You will *need* to provider a couple methods for each, and some more customization is optionally available through virtual overrides.
+You will *need* to provide a couple methods for each, and some more customization is optionally available through virtual overrides. For filters, you can override `ModifyRead()` to change the way that reading of the underlying source is handled, or `PostProcess()` to apply effects to audio after it has been read into memory.
 
 To use the custom sources:
 ```cs
