@@ -10,7 +10,7 @@
 
         public const int ReadBufferSize = SampleRate * ChannelCount;
 
-        public const int BytesPerSample = 4;
+        public const int BytesPerSample = sizeof(float);
 
         public const int MaxMixerInputs = 1024;
     }

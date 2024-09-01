@@ -33,5 +33,7 @@ namespace MonoStereo.Encoding
                     loopEnd = -1;
             }
         }
+
+        public static Dictionary<string, string> ComposeComments(this IReadOnlyDictionary<string, IReadOnlyList<string>> comments) => comments.ToDictionary(c => c.Key, c => c.Value.FirstOrDefault(string.Empty));
     }
 }

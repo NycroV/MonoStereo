@@ -4,7 +4,6 @@ using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace MonoStereo.Pipeline
 {
@@ -15,6 +14,8 @@ namespace MonoStereo.Pipeline
         private OggReader vorbisReader { get; set; }
 
         private NAudio.Wave.AudioFileReader fileReader { get; set; }
+
+        public string FileName { get; }
 
         public Dictionary<string, string> Comments { get; set; }
 
@@ -65,11 +66,13 @@ namespace MonoStereo.Pipeline
 
         public AudioFileReader(string fileName)
         {
+            FileName = fileName;
+
             if (Path.GetExtension(fileName).Equals(".ogg", StringComparison.OrdinalIgnoreCase))
             {
                 vorbisBased = true;
                 vorbisReader = new OggReader(fileName);
-                Comments = vorbisReader.Comments.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.FirstOrDefault(string.Empty));
+                Comments = vorbisReader.Comments.ComposeComments();
             }
 
             else

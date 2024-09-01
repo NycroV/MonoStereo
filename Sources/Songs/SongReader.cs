@@ -42,7 +42,7 @@ namespace MonoStereo.AudioSources.Songs
             FileName = fileName;
 
             OggReader = new(filePath);
-            Comments = OggReader.Comments.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.FirstOrDefault(string.Empty));
+            Comments = OggReader.Comments.ComposeComments();
             Comments.ParseLoop(out long loopStart, out long loopEnd);
 
             LoopStart = loopStart;

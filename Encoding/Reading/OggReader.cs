@@ -12,7 +12,9 @@ namespace MonoStereo.Encoding
 
         public OggReader(string fileName)
             : this(System.IO.File.OpenRead(fileName), true)
-        { }
+        {
+            FileName = fileName;
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -28,6 +30,8 @@ namespace MonoStereo.Encoding
         public override Wave.WaveFormat WaveFormat => SampleProvider.WaveFormat;
 
         public override long Length => SampleProvider.Length;
+
+        public string FileName { get; } = string.Empty;
 
         public override long Position
         {

@@ -6,7 +6,7 @@
     <Authors>Nycro</Authors>
     <Company>$(AssemblyName)</Company>
     <Description>An NAudio based audio engine for MonoGame.</Description>
-    <Version>1.1.7</Version>
+    <Version>1.1.8</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <ApplicationIcon>docs\Icon.ico</ApplicationIcon>

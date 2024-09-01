@@ -48,7 +48,7 @@ namespace MonoStereo.Encoding
 
         public int Read(float[] buffer, int offset, int count)
         {
-            long samplesAvailable = (Length - Position) / AudioStandards.BytesPerSample;
+            long samplesAvailable = Length - Position;
             int samplesToCopy = (int)Math.Min(samplesAvailable, count);
 
             for (int i = 0; i <= samplesToCopy; i++)

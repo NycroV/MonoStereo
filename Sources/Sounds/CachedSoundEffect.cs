@@ -35,6 +35,20 @@ namespace MonoStereo
             AudioManager.CachedSounds.Add(this);
         }
 
+        public CachedSoundEffect(Pipeline.AudioFileReader source)
+        {
+            FileName = source.FileName;
+            WaveFormat = source.WaveFormat;
+
+            var buffer = new float[source.Length];
+            source.Read(buffer, 0, buffer.Length);
+
+            AudioData = buffer;
+            Comments = source.Comments.ToImmutableDictionary();
+
+            AudioManager.CachedSounds.Add(this);
+        }
+
         public SoundEffect GetInstance() => new(this);
 
         public SoundEffect PlayInstance()
