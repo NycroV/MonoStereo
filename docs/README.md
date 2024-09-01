@@ -1,6 +1,8 @@
 # MonoStereo
 ![Icon](https://github.com/user-attachments/assets/2005793d-6dfc-4367-b7ed-35615a580188)
 
+[![nuget](https://badgen.net/nuget/v/MonoStereo?icon=nuget)](https://www.nuget.org/packages/MonoStereo)
+
 [MonoStereo](https://github.com/NycroV/MonoStereo/tree/master) is an audio engine built for [MonoGame](https://github.com/MonoGame/MonoGame) using the [NAudio](https://github.com/naudio/NAudio/tree/master) audio framework.
 
 MonoGame's included audio support is lackluster, leaving many users to find audio implementation through other projects like [FMOD](https://github.com/fmod). MonoStereo aims to be a free, open-source, entirely C# native audio engine, built *specifically* for MonoGame.
