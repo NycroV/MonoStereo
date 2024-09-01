@@ -10,7 +10,7 @@
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <ApplicationIcon>docs\Icon.ico</ApplicationIcon>
-    <PackageIcon>Icon.png</PackageIcon>
+    <PackageIcon>docs\Icon.png</PackageIcon>
     <PackageReadmeFile>docs\README.md</PackageReadmeFile>
     <PackageLicenseFile>docs\LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/NycroV/MonoStereo/tree/master</RepositoryUrl>

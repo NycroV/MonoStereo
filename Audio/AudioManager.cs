@@ -68,7 +68,7 @@ namespace MonoStereo
         /// <param name="masterVolume">The master mixer volume</param>
         /// <param name="musicVolume">The volume for music</param>
         /// <param name="soundEffectVolume">The volume for sound effects</param>
-        public static void Initialize(Func<bool> shouldShutdown, int latency = 100, float masterVolume = 1f, float musicVolume = 1f, float soundEffectVolume = 1f)
+        public static void Initialize(Func<bool> shouldShutdown, int latency = 150, float masterVolume = 1f, float musicVolume = 1f, float soundEffectVolume = 1f)
         {
             Time.Start();
 
