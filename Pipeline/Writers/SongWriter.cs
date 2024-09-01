@@ -1,33 +1,32 @@
-﻿using Microsoft.Xna.Framework.Content.Pipeline;
-using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler;
-using MonoStereo.Encoding;
+﻿using MonoStereo.Encoding;
+using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.IO;
 
 namespace MonoStereo.Pipeline
 {
-    [ContentTypeWriter]
-    public class SongWriter : ContentTypeWriter<OggWriter>
+    public class SongWriter(AudioFileReader reader)
     {
-        protected override void Write(ContentWriter output, OggWriter value)
+        public AudioFileReader Reader { get; private set; } = reader;
+
+        public void Write(string fileName, int quality)
         {
-            value.Logger.LogMessage("Writing song file: {0} (Quality: {1})", value.FileName, value.Quality);
+            FileStream stream = File.Create(fileName);
+            OggWriter writer = new()
+            {
+                Quality = quality,
+                Reader = Reader,
+                FileName = fileName,
+            };
 
-            Stream stream = output.BaseStream;
-            long length = stream.Length;
-            stream.Position = 0;
+            ISampleProvider resampleSource = Reader;
+            if (resampleSource.WaveFormat.Channels != AudioStandards.ChannelCount)
+                resampleSource = new MonoToStereoSampleProvider(resampleSource);
 
-            WdlResamplingSampleProvider resampler = new(value.Reader, AudioStandards.SampleRate);
-            value.WriteToOgg(resampler, stream);
+            WdlResamplingSampleProvider resampler = new(resampleSource, AudioStandards.SampleRate);
+            writer.WriteToOgg(resampler, stream);
 
-            if (stream.Position < length)
-                stream.SetLength(stream.Position);
-
-            value.Logger.LogMessage("Finished writing audio file: {0}", value.FileName);
+            stream.Dispose();
         }
-
-        public override string GetRuntimeReader(TargetPlatform targetPlatform) => "";
-
-        public override string GetRuntimeType(TargetPlatform targetPlatform) => "";
     }
 }

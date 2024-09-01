@@ -1,33 +1,31 @@
-﻿using Microsoft.Xna.Framework.Content.Pipeline;
-using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler;
-using MonoStereo.Encoding;
+﻿using MonoStereo.Encoding;
+using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.IO;
 
 namespace MonoStereo.Pipeline
 {
-    [ContentTypeWriter]
-    public class SoundEffectWriter : ContentTypeWriter<SoundEffectFileWriter>
+    public class SoundEffectWriter(AudioFileReader reader)
     {
-        protected override void Write(ContentWriter output, SoundEffectFileWriter value)
+        public AudioFileReader Reader { get; private set; } = reader;
+
+        public void Write(string fileName)
         {
-            value.Logger.LogMessage("Writing sound effect file: {0}", value.FileName);
+            FileStream stream = File.Create(fileName);
+            SoundEffectFileWriter writer = new()
+            {
+                Reader = Reader,
+                FileName = fileName
+            };
 
-            Stream stream = output.BaseStream;
-            long length = stream.Length;
-            stream.Position = 0;
+            ISampleProvider resampleSource = Reader;
+            if (resampleSource.WaveFormat.Channels != AudioStandards.ChannelCount)
+                resampleSource = new MonoToStereoSampleProvider(resampleSource);
 
-            WdlResamplingSampleProvider resampler = new(value.Reader, AudioStandards.SampleRate);
-            value.WriteToWav(resampler, stream);
+            WdlResamplingSampleProvider resampler = new(resampleSource, AudioStandards.SampleRate);
+            writer.WriteToWav(resampler, stream);
 
-            if (stream.Position < length)
-                stream.SetLength(stream.Position);
-
-            value.Logger.LogMessage("Finished writing audio file: {0}", value.FileName);
+            stream.Dispose();
         }
-
-        public override string GetRuntimeReader(TargetPlatform targetPlatform) => "";
-
-        public override string GetRuntimeType(TargetPlatform targetPlatform) => "";
     }
 }

@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content.Pipeline;
-using MonoStereo.Pipeline;
+﻿using MonoStereo.Pipeline;
 using OggVorbisEncoder;
 using System;
 using System.IO;
@@ -13,14 +11,12 @@ namespace MonoStereo.Encoding
 
         public AudioFileReader Reader { get; set; }
 
-        public ContentBuildLogger Logger { get; set; }
-
         public int Quality { get; set; }
 
         public void WriteToOgg(NAudio.Wave.ISampleProvider inputStream, Stream outputStream)
         {
             // Stores all the static vorbis bitstream settings
-            float quality = MathHelper.Clamp(Quality, 1, 10) / 10f;
+            float quality = int.Clamp(Quality, 1, 10) / 10f;
             var info = VorbisInfo.InitVariableBitRate(AudioStandards.ChannelCount, AudioStandards.SampleRate, quality);
 
             // set up our packet->stream encoder

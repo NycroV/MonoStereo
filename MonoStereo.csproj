@@ -2,10 +2,10 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>MonoStereo</Title>
+    <Title>MonoStereo.Slim</Title>
     <Authors>Nycro</Authors>
     <Company>$(AssemblyName)</Company>
-    <Description>An NAudio based audio engine for MonoGame.</Description>
+    <Description>A portable NAudio based audio engine.</Description>
     <Version>1.2.2</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -14,8 +14,19 @@
     <PackageReadmeFile>docs\README.md</PackageReadmeFile>
     <PackageLicenseFile>docs\LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/NycroV/MonoStereo/tree/master</RepositoryUrl>
-    <PackageTags>MonoGame;Audio;Audio Engine</PackageTags>
+    <PackageTags>Audio;Audio Engine</PackageTags>
+    <AssemblyName>$(MSBuildProjectName).Slim</AssemblyName>
+    <BaseOutputPath>bin\slim\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\slim\</BaseIntermediateOutputPath>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="bin\**" />
+    <Compile Remove="obj\**" />
+    <EmbeddedResource Remove="bin\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <None Remove="bin\**" />
+    <None Remove="obj\**" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="docs\Icon.ico" />
   </ItemGroup>
@@ -24,14 +35,8 @@
     <None Include="Vorbis\OggVorbisEncoder\OggVorbisEncoder.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.Content.Pipeline" Version="3.8.1.303">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="z440.atl.core" Version="6.1.0" />
+    <PackageReference Include="z440.atl.core" Version="6.2.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="docs\README.md">
