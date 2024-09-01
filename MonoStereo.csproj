@@ -11,8 +11,8 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <PackageIcon>Icon.png</PackageIcon>
-    <PackageReadmeFile>readme.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageReadmeFile>docs\README.md</PackageReadmeFile>
+    <PackageLicenseFile>docs\LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Icon.ico" />
@@ -32,15 +32,15 @@
     <PackageReference Include="z440.atl.core" Version="6.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="docs\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Update="LICENSE.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Update="README.md">
+    <None Update="docs\LICENSE.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

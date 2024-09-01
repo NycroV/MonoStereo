@@ -3,7 +3,7 @@ using NAudio.Wave;
 using System;
 using System.Collections.Immutable;
 
-namespace MonoStereo.AudioSources.Sounds
+namespace MonoStereo
 {
     public class CachedSoundEffect : IDisposable
     {

@@ -16,6 +16,8 @@ namespace MonoStereo.Filters
             }
         }
 
+        public override FilterPriority Priority => FilterPriority.ApplyLast;
+
         private readonly WdlResampler resampler = new();
 
         public SpeedChangeFilter(float speed)
