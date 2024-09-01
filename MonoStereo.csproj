@@ -13,6 +13,8 @@
     <PackageIcon>Icon.png</PackageIcon>
     <PackageReadmeFile>docs\README.md</PackageReadmeFile>
     <PackageLicenseFile>docs\LICENSE.md</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/NycroV/MonoStereo/tree/master</RepositoryUrl>
+    <PackageTags>MonoGame;Audio;Audio Engine</PackageTags>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Icon.ico" />

@@ -1,5 +1,4 @@
-﻿using MonoStereo.AudioSources.Sounds;
-using MonoStereo.SampleProviders;
+﻿using MonoStereo.SampleProviders;
 using NAudio;
 using NAudio.Wave;
 using System;
@@ -9,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MonoStereo
 {
