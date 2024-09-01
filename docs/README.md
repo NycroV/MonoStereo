@@ -1,4 +1,5 @@
 # MonoStereo
+![Icon](https://github.com/user-attachments/assets/2005793d-6dfc-4367-b7ed-35615a580188)
 
 [MonoStereo](https://github.com/NycroV/MonoStereo/tree/master) is an audio engine built for [MonoGame](https://github.com/MonoGame/MonoGame) using the [NAudio](https://github.com/naudio/NAudio/tree/master) audio framework.
 
