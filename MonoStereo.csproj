@@ -9,7 +9,7 @@
     <Version>1.1.7</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <ApplicationIcon>docs\Icon.ico</ApplicationIcon>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageReadmeFile>docs\README.md</PackageReadmeFile>
     <PackageLicenseFile>docs\LICENSE.md</PackageLicenseFile>
@@ -17,7 +17,7 @@
     <PackageTags>MonoGame;Audio;Audio Engine</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="Icon.ico" />
+    <Content Include="docs\Icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Vorbis\NVorbis\NVorbis.csproj" />
@@ -38,7 +38,7 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Update="Icon.png">
+    <None Update="docs\Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
