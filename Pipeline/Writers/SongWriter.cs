@@ -1,6 +1,8 @@
-﻿using Microsoft.Xna.Framework.Content.Pipeline;
+﻿using CppNet;
+using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler;
 using MonoStereo.Encoding;
+using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.IO;
 
@@ -17,7 +19,15 @@ namespace MonoStereo.Pipeline
             long length = stream.Length;
             stream.Position = 0;
 
-            WdlResamplingSampleProvider resampler = new(value.Reader, AudioStandards.SampleRate);
+            ISampleProvider resampleSource = value.Reader;
+
+            if (resampleSource.WaveFormat.SampleRate != AudioStandards.SampleRate)
+                resampleSource = new WdlResamplingSampleProvider(resampleSource, AudioStandards.SampleRate);
+
+            if (resampleSource.WaveFormat.Channels != AudioStandards.ChannelCount)
+                resampleSource = new MonoToStereoSampleProvider(resampleSource);
+
+            WdlResamplingSampleProvider resampler = new(resampleSource, AudioStandards.SampleRate);
             value.WriteToOgg(resampler, stream);
 
             if (stream.Position < length)

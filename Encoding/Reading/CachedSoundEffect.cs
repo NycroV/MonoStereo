@@ -1,5 +1,6 @@
 ﻿using MonoStereo.Encoding;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -48,10 +49,18 @@ namespace MonoStereo
             int samplesRead;
             float[] buffer = new float[AudioStandards.ReadBufferSize];
             List<float> audioData = [];
-            
+
+            ISampleProvider resampleSource = source;
+
+            if (resampleSource.WaveFormat.SampleRate != AudioStandards.SampleRate)
+                resampleSource = new WdlResamplingSampleProvider(resampleSource, AudioStandards.SampleRate);
+
+            if (resampleSource.WaveFormat.Channels != AudioStandards.ChannelCount)
+                resampleSource = new MonoToStereoSampleProvider(resampleSource);
+
             do
             {
-                samplesRead = source.Read(buffer, 0, buffer.Length);
+                samplesRead = resampleSource.Read(buffer, 0, buffer.Length);
                 audioData.AddRange(buffer.Take(samplesRead));
             }
             while (samplesRead > 0);
