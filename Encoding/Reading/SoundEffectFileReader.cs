@@ -51,7 +51,7 @@ namespace MonoStereo.Encoding
             long samplesAvailable = Length - Position;
             int samplesToCopy = (int)Math.Min(samplesAvailable, count);
 
-            for (int i = 0; i <= samplesToCopy; i++)
+            for (int i = 0; i < samplesToCopy; i++)
                 buffer[offset + i] = Stream.ReadSingle();
 
             return samplesToCopy;
