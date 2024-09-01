@@ -1,7 +1,9 @@
 ﻿using MonoStereo.Encoding;
 using NAudio.Wave;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace MonoStereo
 {
@@ -35,16 +37,24 @@ namespace MonoStereo
             AudioManager.CachedSounds.Add(this);
         }
 
-        public CachedSoundEffect(Pipeline.AudioFileReader source)
+        public CachedSoundEffect(ISampleProvider source, string fileName = "", IDictionary<string, string> comments = null)
         {
-            FileName = source.FileName;
+            FileName = fileName;
             WaveFormat = source.WaveFormat;
 
-            var buffer = new float[source.Length];
-            source.Read(buffer, 0, buffer.Length);
+            int samplesRead;
+            float[] buffer = new float[AudioStandards.ReadBufferSize];
+            List<float> audioData = [];
+            
+            do
+            {
+                samplesRead = source.Read(buffer, 0, buffer.Length);
+                audioData.AddRange(buffer.Take(samplesRead));
+            }
+            while (samplesRead > 0);
 
-            AudioData = buffer;
-            Comments = source.Comments.ToImmutableDictionary();
+            AudioData = audioData.ToArray();
+            Comments = comments?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
 
             AudioManager.CachedSounds.Add(this);
         }
