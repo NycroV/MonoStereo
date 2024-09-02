@@ -64,14 +64,37 @@ namespace MonoStereo
             return samplesRead;
         }
 
-        public void Play()
+        public override void Play()
         {
             PlaybackState = PlaybackState.Playing;
-            AudioManager.activeSoundEffects.Add(this);
+
+            if (!AudioManager.activeSoundEffects.Contains(this))
+                AudioManager.activeSoundEffects.Add(this);
+
+            else
+                Source.Position = 0;
+
+            Source.OnPlay();
         }
 
-        // Close will be called after a sound is marked as stopped.
-        public void Stop() => PlaybackState = PlaybackState.Stopped;
+        public override void Pause()
+        {
+            base.Pause();
+            Source.OnPause();
+        }
+
+        public override void Resume()
+        {
+            base.Resume();
+            Source.OnResume();
+        }
+
+        // Close will be called after a song is marked as stopped.
+        public override void Stop()
+        {
+            base.Stop();
+            Source.OnStop();
+        }
 
         public override void Close()
         {

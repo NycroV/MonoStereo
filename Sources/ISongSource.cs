@@ -14,11 +14,13 @@ namespace MonoStereo.AudioSources
 
         public bool IsLooped { get; set; }
 
-        public virtual void Resume() => PlaybackState = PlaybackState.Playing;
+        public virtual void OnPlay() { }
 
-        public virtual void Pause() => PlaybackState = PlaybackState.Paused;
+        public virtual void OnResume() { }
 
-        public virtual void Stop() => PlaybackState = PlaybackState.Stopped;
+        public virtual void OnPause() { }
+
+        public virtual void OnStop() { }
 
         public abstract void Close();
     }
