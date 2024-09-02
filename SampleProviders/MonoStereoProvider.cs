@@ -72,9 +72,13 @@ namespace MonoStereo.SampleProviders
             }
         }
 
+        public abstract void Play();
+
         public virtual void Pause() => PlaybackState = PlaybackState.Paused;
 
         public virtual void Resume() => PlaybackState = PlaybackState.Playing;
+
+        public virtual void Stop() => PlaybackState = PlaybackState.Stopped; 
 
         public virtual void Close() { }
 

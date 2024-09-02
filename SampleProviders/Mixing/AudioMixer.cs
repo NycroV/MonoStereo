@@ -20,6 +20,8 @@ namespace MonoStereo.SampleProviders
                 Inputs.AddMixerInput(input);
         }
 
+        public override void Play() => AudioManager.MasterMixer.AddInput(this);
+
         public void AddInput(ISampleProvider sampleProvider) => Inputs.AddMixerInput(sampleProvider);
 
         public void RemoveInput(ISampleProvider sampleProvider) => Inputs.RemoveMixerInput(sampleProvider);
