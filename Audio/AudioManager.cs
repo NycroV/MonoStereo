@@ -14,7 +14,7 @@ namespace MonoStereo
     {
         private static Thread AudioThread { get; set; }
 
-        private static WaveOutEvent Output { get; set; }
+        internal static WaveOutEvent Output { get; set; }
 
         public static AudioMixer SoundMixer { get; private set; }
 
