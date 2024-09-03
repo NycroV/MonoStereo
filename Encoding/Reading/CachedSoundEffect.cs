@@ -38,6 +38,10 @@ namespace MonoStereo
             AudioData = buffer;
             Comments = fileReader.Comments;
 
+            Comments.ParseLoop(out long loopStart, out long loopEnd);
+            LoopStart = loopStart;
+            LoopEnd = loopEnd;
+
             AudioManager.CachedSounds.Add(this);
         }
 
