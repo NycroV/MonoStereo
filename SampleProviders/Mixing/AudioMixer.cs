@@ -16,8 +16,7 @@ namespace MonoStereo.SampleProviders
 
             Volume = volume;
 
-            foreach (var input in initialInputs)
-                Inputs.AddMixerInput(input);
+            Inputs.SetMixerInputs(initialInputs);
         }
 
         public override void Play() => AudioManager.MasterMixer.AddInput(this);

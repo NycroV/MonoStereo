@@ -122,7 +122,9 @@ namespace MonoStereo
         {
             static void UpdateInputs(AudioMixer mixer, ArrayList newInputs)
             {
-                var inputs = mixer.Inputs.MixerInputs.Cast<MonoStereoProvider>();
+                // The .ToList() calls duplicate the sources so as not to
+                // cause enumeration errors
+                var inputs = mixer.Inputs.MixerInputs.Cast<MonoStereoProvider>().ToList();
 
                 foreach (var input in inputs)
                 {
@@ -132,7 +134,7 @@ namespace MonoStereo
                         input.Close();
                 }
 
-                var sources = newInputs.Cast<ISampleProvider>();
+                var sources = newInputs.Cast<ISampleProvider>().ToList();
                 mixer.Inputs.SetMixerInputs(sources);
             }
 
