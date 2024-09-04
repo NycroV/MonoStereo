@@ -53,10 +53,27 @@ namespace MonoStereo
             ISampleProvider resampleSource = source;
 
             if (resampleSource.WaveFormat.SampleRate != AudioStandards.SampleRate)
+            {
+                float scalar = (float)AudioStandards.SampleRate / resampleSource.WaveFormat.SampleRate;
+
+                LoopStart = LoopStart <= 0 ? LoopStart : (long)(LoopStart * scalar);
+                LoopEnd = LoopEnd <= 0 ? LoopEnd : (long)(LoopEnd * scalar);
+
+                LoopStart = LoopStart <= 0 ? LoopStart : LoopStart - (LoopStart % resampleSource.WaveFormat.Channels);
+                LoopEnd = LoopEnd <= 0 ? LoopEnd : (LoopEnd % resampleSource.WaveFormat.Channels);
+
                 resampleSource = new WdlResamplingSampleProvider(resampleSource, AudioStandards.SampleRate);
+            }
 
             if (resampleSource.WaveFormat.Channels != AudioStandards.ChannelCount)
+            {
+                if (resampleSource.WaveFormat.Channels != 1)
+                    throw new ArgumentException("Source must be in either stereo or mono!", nameof(source));
+
                 resampleSource = new MonoToStereoSampleProvider(resampleSource);
+                LoopStart = LoopStart <= 0 ? LoopStart : LoopStart * AudioStandards.ChannelCount;
+                LoopEnd = LoopEnd <= 0 ? LoopEnd : LoopEnd * AudioStandards.ChannelCount;
+            }
 
             do
             {
