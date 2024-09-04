@@ -64,7 +64,7 @@ namespace MonoStereo
                 LoopEnd = LoopEnd <= 0 ? LoopEnd : (long)(LoopEnd * scalar);
 
                 LoopStart = LoopStart <= 0 ? LoopStart : LoopStart - (LoopStart % resampleSource.WaveFormat.Channels);
-                LoopEnd = LoopEnd <= 0 ? LoopEnd : (LoopEnd % resampleSource.WaveFormat.Channels);
+                LoopEnd = LoopEnd <= 0 ? LoopEnd : LoopEnd - (LoopEnd % resampleSource.WaveFormat.Channels);
 
                 resampleSource = new WdlResamplingSampleProvider(resampleSource, AudioStandards.SampleRate);
             }
