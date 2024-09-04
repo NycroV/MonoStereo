@@ -75,6 +75,17 @@ namespace MonoStereo.Encoding
 
         public int Read(float[] buffer, int offset, int count) => SampleProvider.Read(buffer, offset, count);
 
+        /// <summary>
+        /// Seeks the current stream to the sample position specified.
+        /// </summary>
+        /// <param name="samplePosition">The sample position to seek to.</param>
+        /// <returns>The sample position seeked to.</returns>
+        public long Seek(long samplePosition)
+        {
+            SampleProvider.Seek(samplePosition);
+            return SampleProvider.SamplePosition;
+        }
+
         public int StreamCount => SampleProvider.StreamCount;
 
         public int? NextStreamIndex { get; set; }
