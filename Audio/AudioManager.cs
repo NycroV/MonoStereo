@@ -4,6 +4,7 @@ using NAudio.Wave;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -51,16 +52,33 @@ namespace MonoStereo
             set => MasterMixer.Volume = value;
         }
 
-        // By using SynchronizedLists, we can ensure thread-safe access to the elements
-        // without needing to wrap anything with a lock ourselves.
+        private static readonly ArrayList activeSongs = ArrayList.Synchronized([]);
 
-        internal static readonly ArrayList activeSongs = ArrayList.Synchronized([]);
+        private static readonly ArrayList activeSoundEffects = ArrayList.Synchronized([]);
 
-        internal static readonly ArrayList activeSoundEffects = ArrayList.Synchronized([]);
+        public static ReadOnlyCollection<Song> ActiveSongs { get { lock (activeSongs) { return activeSongs.Cast<Song>().ToList().AsReadOnly(); } } }
 
-        public static IEnumerable<Song> ActiveSongs => activeSongs.Cast<Song>();
+        public static ReadOnlyCollection<SoundEffect> ActiveSoundEffects { get { lock (activeSoundEffects) { return activeSoundEffects.Cast<SoundEffect>().ToList().AsReadOnly(); } } }
 
-        public static IEnumerable<SoundEffect> ActiveSoundEffects => activeSoundEffects.Cast<SoundEffect>();
+        public static void AddSongInput(Song song)
+        {
+            lock (activeSongs) { activeSongs.Add(song); }
+        }
+
+        public static void RemoveSongInput(Song song)
+        {
+            lock (activeSongs) { activeSongs.Remove(song); }
+        }
+
+        public static void AddSoundEffectInput(SoundEffect soundEffect)
+        {
+            lock (activeSoundEffects) { activeSoundEffects.Add(soundEffect); }
+        }
+
+        public static void RemoveSoundInput(SoundEffect soundEffect)
+        {
+            lock (activeSoundEffects) { activeSoundEffects.Remove(soundEffect); }
+        }
 
         /// <summary>
         /// Initializes the MonoStereo Audio Engine
@@ -134,8 +152,11 @@ namespace MonoStereo
                         input.Close();
                 }
 
-                var sources = newInputs.Cast<ISampleProvider>().ToList();
-                mixer.Inputs.SetMixerInputs(sources);
+                lock (newInputs)
+                {
+                    var sources = newInputs.Cast<ISampleProvider>();
+                    mixer.Inputs.SetMixerInputs(sources);
+                }
             }
 
             UpdateInputs(MusicMixer, activeSongs);

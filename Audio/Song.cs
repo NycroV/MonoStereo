@@ -3,6 +3,7 @@ using MonoStereo.AudioSources.Songs;
 using MonoStereo.SampleProviders;
 using NAudio.Wave;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MonoStereo
 {
@@ -61,8 +62,8 @@ namespace MonoStereo
         {
             PlaybackState = PlaybackState.Playing;
 
-            if (!AudioManager.activeSongs.Contains(this))
-                AudioManager.activeSongs.Add(this);
+            if (!AudioManager.ActiveSongs.ToArray().Contains(this))
+                AudioManager.AddSongInput(this);
 
             else
                 Source.Position = 0;
@@ -91,7 +92,7 @@ namespace MonoStereo
 
         public override void Close()
         {
-            AudioManager.activeSongs.Remove(this);
+            AudioManager.RemoveSongInput(this);
             Source.Close();
         }
     }
