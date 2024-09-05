@@ -39,8 +39,9 @@ namespace MonoStereo
             Comments = fileReader.Comments;
 
             Comments.ParseLoop(out long loopStart, out long loopEnd);
-            LoopStart = loopStart;
-            LoopEnd = loopEnd;
+
+            LoopStart = loopStart <= 0 ? loopStart : loopStart * WaveFormat.Channels;
+            LoopEnd = loopEnd <= 0 ? loopEnd : loopEnd * WaveFormat.Channels;
 
             AudioManager.CachedSounds.Add(this);
         }
@@ -75,9 +76,10 @@ namespace MonoStereo
                     throw new ArgumentException("Source must be in either stereo or mono!", nameof(source));
 
                 resampleSource = new MonoToStereoSampleProvider(resampleSource);
-                LoopStart = LoopStart <= 0 ? LoopStart : LoopStart * AudioStandards.ChannelCount;
-                LoopEnd = LoopEnd <= 0 ? LoopEnd : LoopEnd * AudioStandards.ChannelCount;
             }
+
+            LoopStart = LoopStart <= 0 ? LoopStart : LoopStart * AudioStandards.ChannelCount;
+            LoopEnd = LoopEnd <= 0 ? LoopEnd : LoopEnd * AudioStandards.ChannelCount;
 
             do
             {
