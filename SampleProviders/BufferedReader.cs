@@ -1,108 +1,126 @@
-﻿using NAudio.Wave;
+﻿using NAudio.Utils;
+using NAudio.Wave;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace MonoStereo.SampleProviders
 {
-    public class BufferedReader : ISeekableSampleProvider, IDisposable
+    public class BufferedReader : ISampleProvider, IDisposable
     {
-        private ConcurrentQueue<float> sampleBuffer = [];
+        public WaveFormat WaveFormat { get; }
+        private readonly ISampleProvider sampleProvider;
 
-        private int sampleEstimate = 0;
-
+        public float SecondsToHold { get => bufferLength / WaveFormat.SampleRate / WaveFormat.Channels; set => bufferLength = (int)(WaveFormat.SampleRate * WaveFormat.Channels * value); }
+        private int bufferLength;
         private bool samplesAvailable = true;
 
+        private readonly object clearBufferLock = new();
+        private readonly ConcurrentQueue<float> sampleBuffer = [];
+        private float[] inBuffer;
+        public int BufferedSamples { get => sampleBuffer.Count; }
+
+        private static readonly List<BufferedReader> bufferedReaders = [];
+        private static Thread readerThread;
         private bool disposing = false;
 
-        private readonly ISeekableSampleProvider source;
-
-        public BufferedReader(ISeekableSampleProvider provider)
+        /// <summary>
+        /// Creates a new buffered WaveProvider
+        /// </summary>
+        public BufferedReader(ISampleProvider source, float secondsToHold)
         {
-            source = provider;
-            _position = provider.Position;
+            WaveFormat = source.WaveFormat;
+            SecondsToHold = secondsToHold;
+            sampleProvider = source;
 
-            Thread readerThread = new(() =>
+            if (readerThread is null)
             {
-                while (!disposing)
-                    ReadAhead();
+                readerThread = new(CacheBuffers)
+                {
+                    Priority = ThreadPriority.AboveNormal
+                };
 
-                sampleBuffer.Clear();
-                sampleBuffer = null;
-            });
-        }
-
-        private long _position;
-
-        public long Position
-        {
-            get => _position;
-            set
-            {
-                source.Position = value;
-                sampleBuffer.Clear();
-                _position = value;
+                readerThread.Start();
             }
+
+            bufferedReaders.Add(this);
         }
 
-        public WaveFormat WaveFormat => source.WaveFormat;
-
-        public void ReadAhead()
+        private void ReadAhead()
         {
-            int samplesRequired = sampleEstimate - sampleBuffer.Count;
+            int samplesRequested = bufferLength - sampleBuffer.Count;
+            inBuffer = BufferHelpers.Ensure(inBuffer, samplesRequested);
 
-            if (samplesRequired > 0 && samplesAvailable)
+            lock (clearBufferLock)
             {
-                float[] buffer = new float[samplesRequired];
-                var samplesRead = source.Read(buffer, 0, samplesRequired);
+                int read = sampleProvider.Read(inBuffer, 0, samplesRequested);
 
-                for (int i = 0; i < samplesRead; i++)
-                    sampleBuffer?.Enqueue(buffer[i]);
+                if (read > 0)
+                {
+                    for (int i = 0; i < read; i++)
+                        sampleBuffer.Enqueue(inBuffer[i]);
+                }
 
-                if (samplesRead == 0)
+                else
                     samplesAvailable = false;
             }
         }
 
+        /// <summary>
+        /// Reads from this SampleProvider
+        /// Will always return count floats, since we will zero-fill the buffer if not enough available
+        /// </summary>
         public int Read(float[] buffer, int offset, int count)
         {
-            sampleEstimate = count;
-            int samplesRead = 0;
+            int read = 0;
 
-            bool OutSample()
+            while (read < count && samplesAvailable)
             {
                 if (sampleBuffer.TryDequeue(out float sample))
                 {
                     buffer[offset++] = sample;
-                    samplesRead++;
-                    return true;
+                    read++;
                 }
 
-                return false;
+                else
+                    ReadAhead();
             }
 
-            for (int i = 0; i < count; i++)
+            return read;
+        }
+
+        private static void CacheBuffers()
+        {
+            while (AudioManager.IsRunning)
             {
-                if (!OutSample())
+                for (int i = 0; i < bufferedReaders.Count; i++)
                 {
-                    if (samplesAvailable)
-                        ReadAhead();
+                    var reader = bufferedReaders[i];
 
-                    else
-                        break;
+                    if (reader?.disposing ?? false)
+                    {
+                        bufferedReaders.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
 
-                    i--;
+                    reader?.ReadAhead();
                 }
             }
+        }
 
-            _position += samplesRead;
-            return samplesRead;
+        public void ClearBuffer()
+        {
+            lock (clearBufferLock)
+            {
+                sampleBuffer.Clear();
+            }
         }
 
         public void Dispose()
         {
             disposing = true;
-            GC.SuppressFinalize(this);
         }
     }
 }

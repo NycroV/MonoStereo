@@ -15,7 +15,9 @@ namespace MonoStereo
     {
         private static Thread AudioThread { get; set; }
 
-        internal static WaveOutEvent Output { get; set; }
+        public static bool IsRunning { get; private set; }
+
+        internal static HighPriorityWaveOutEvent Output { get; set; }
 
         public static AudioMixer SoundMixer { get; private set; }
 
@@ -115,8 +117,10 @@ namespace MonoStereo
             Output.Init(MasterMixer);
             Output.Play();
 
-            AudioThread = new(() => RunAudioThread(shouldShutdown));
+            AudioThread = new(() => RunAudioThread(shouldShutdown)) { Priority = ThreadPriority.BelowNormal };
             AudioThread.Start();
+
+            IsRunning = true;
         }
 
         internal static void RunAudioThread(Func<bool> shouldShutdown)
@@ -131,6 +135,8 @@ namespace MonoStereo
             MasterMixer.Dispose();
             MusicMixer.Dispose();
             SoundMixer.Dispose();
+
+            IsRunning = false;
 
             foreach (CachedSoundEffect sound in CachedSounds.ToArray())
                 sound.Dispose();
@@ -179,7 +185,7 @@ namespace MonoStereo
         {
             Output.Dispose();
 
-            Output = new WaveOutEvent() { DeviceNumber = deviceNumber };
+            Output = new() { DeviceNumber = deviceNumber };
             Output.Init(MasterMixer);
 
             Output.Play();

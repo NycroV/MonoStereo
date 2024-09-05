@@ -4,13 +4,17 @@ using System.Collections.Generic;
 
 namespace MonoStereo.AudioSources.Songs
 {
-    public class BufferedSongReader(ISongSource source) : ISongSource
+    public class BufferedSongReader(ISongSource source, float secondsToHold = 5f) : ISongSource
     {
         private readonly ISongSource Source = source;
 
-        private BufferedReader Reader = new(source);
+        private readonly BufferedReader Reader = new(source, secondsToHold);
 
-        public PlaybackState PlaybackState { get => Source.PlaybackState; set => Source.PlaybackState = value; }
+        public PlaybackState PlaybackState
+        {
+            get => Source.PlaybackState;
+            set => Source.PlaybackState = value;
+        }
 
         public Dictionary<string, string> Comments => Source.Comments;
 
@@ -18,7 +22,7 @@ namespace MonoStereo.AudioSources.Songs
 
         public bool IsLooped { get => Source.IsLooped; set => Source.IsLooped = value; }
 
-        public long Position { get => Reader.Position; set => Reader.Position = value; }
+        public long Position { get => Source.Position - Reader.BufferedSamples; set { Source.Position = value; Reader.ClearBuffer(); } }
 
         public WaveFormat WaveFormat => Source.WaveFormat;
 
