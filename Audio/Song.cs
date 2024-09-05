@@ -62,7 +62,7 @@ namespace MonoStereo
         {
             PlaybackState = PlaybackState.Playing;
 
-            if (!AudioManager.ActiveSongs.ToArray().Contains(this))
+            if (!AudioManager.ActiveSongs.Contains(this))
                 AudioManager.AddSongInput(this);
 
             else
