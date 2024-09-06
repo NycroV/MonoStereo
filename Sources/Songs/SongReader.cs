@@ -25,7 +25,11 @@ namespace MonoStereo.AudioSources.Songs
         public long Position
         {
             get => OggReader.Position;
-            set => OggReader.Position = value;
+            set
+            {
+                if (OggReader.Position != value)
+                    OggReader.Position = value;
+            }
         }
 
         public long LoopStart { get; private set; } = -1;
