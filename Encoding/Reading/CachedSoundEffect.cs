@@ -38,11 +38,7 @@ namespace MonoStereo
             AudioData = buffer;
             Comments = fileReader.Comments;
 
-            Comments.ParseLoop(out long loopStart, out long loopEnd);
-
-            LoopStart = loopStart <= 0 ? loopStart : loopStart * WaveFormat.Channels;
-            LoopEnd = loopEnd <= 0 ? loopEnd : loopEnd * WaveFormat.Channels;
-
+            Comments.ParseLoop(out long loopStart, out long loopEnd, WaveFormat.Channels);
             AudioManager.CachedSounds.Add(this);
         }
 

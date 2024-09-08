@@ -14,7 +14,7 @@ namespace MonoStereo.SampleProviders
 
         public float SecondsToHold { get => bufferLength / WaveFormat.SampleRate / WaveFormat.Channels; set => bufferLength = (int)(WaveFormat.SampleRate * WaveFormat.Channels * value); }
         private int bufferLength;
-        private bool samplesAvailable = true;
+        private bool sourceSamplesAvailable = true;
 
         private readonly object clearBufferLock = new();
         private readonly ConcurrentQueue<float> sampleBuffer = [];
@@ -49,21 +49,31 @@ namespace MonoStereo.SampleProviders
 
         private void ReadAhead()
         {
+            if (disposing)
+                return;
+
             int samplesRequested = bufferLength - sampleBuffer.Count;
-            inBuffer = BufferHelpers.Ensure(inBuffer, samplesRequested);
+            while (samplesRequested % WaveFormat.Channels != 0)
+                samplesRequested--;
 
-            lock (clearBufferLock)
+            if (samplesRequested > 0)
             {
-                int read = sampleProvider.Read(inBuffer, 0, samplesRequested);
+                inBuffer = BufferHelpers.Ensure(inBuffer, samplesRequested);
 
-                if (read > 0)
+                lock (clearBufferLock)
                 {
-                    for (int i = 0; i < read; i++)
-                        sampleBuffer.Enqueue(inBuffer[i]);
-                }
+                    int read = sampleProvider.Read(inBuffer, 0, samplesRequested);
 
-                else
-                    samplesAvailable = false;
+                    if (read > 0)
+                    {
+                        sourceSamplesAvailable = true;
+                        for (int i = 0; i < read; i++)
+                            sampleBuffer.Enqueue(inBuffer[i]);
+                    }
+
+                    else
+                        sourceSamplesAvailable = false;
+                }
             }
         }
 
@@ -75,7 +85,7 @@ namespace MonoStereo.SampleProviders
         {
             int read = 0;
 
-            while (read < count && samplesAvailable)
+            while (read < count)
             {
                 if (sampleBuffer.TryDequeue(out float sample))
                 {
@@ -84,7 +94,12 @@ namespace MonoStereo.SampleProviders
                 }
 
                 else
+                {
                     ReadAhead();
+
+                    if (!sourceSamplesAvailable)
+                        break;
+                }
             }
 
             return read;
@@ -92,21 +107,24 @@ namespace MonoStereo.SampleProviders
 
         private static void CacheBuffers()
         {
-            while (AudioManager.IsRunning)
+            for (int i = 0; i < bufferedReaders.Count; i++)
             {
-                for (int i = 0; i < bufferedReaders.Count; i++)
+                if (!AudioManager.IsRunning)
+                    break;
+
+                var reader = bufferedReaders[i];
+
+                if (reader?.disposing ?? false)
                 {
-                    var reader = bufferedReaders[i];
-
-                    if (reader?.disposing ?? false)
-                    {
-                        bufferedReaders.RemoveAt(i);
-                        i--;
-                        continue;
-                    }
-
-                    reader?.ReadAhead();
+                    bufferedReaders.RemoveAt(i);
+                    i--;
+                    continue;
                 }
+
+                reader?.ReadAhead();
+
+                if (i == bufferedReaders.Count - 1)
+                    i = -1;
             }
         }
 

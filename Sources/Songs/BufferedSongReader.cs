@@ -20,9 +20,27 @@ namespace MonoStereo.AudioSources.Songs
 
         public long Length => Source.Length;
 
-        public bool IsLooped { get => Source.IsLooped; set => Source.IsLooped = value; }
+        public bool IsLooped
+        {
+            get => Source.IsLooped;
+            set
+            {
+                if (Source.IsLooped != value)
+                    Reader.ClearBuffer();
 
-        public long Position { get => Source.Position - Reader.BufferedSamples; set { Source.Position = value; Reader.ClearBuffer(); } }
+                Source.IsLooped = value;
+            }
+        }
+
+        public long Position
+        {
+            get => Source.Position - Reader.BufferedSamples;
+            set
+            {
+                Source.Position = value;
+                Reader.ClearBuffer();
+            }
+        }
 
         public WaveFormat WaveFormat => Source.WaveFormat;
 
