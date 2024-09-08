@@ -2,8 +2,6 @@
 using NAudio.Wave;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
 
 namespace MonoStereo.SampleProviders
 {
@@ -20,10 +18,8 @@ namespace MonoStereo.SampleProviders
         private readonly ConcurrentQueue<float> sampleBuffer = [];
         private float[] inBuffer;
         public int BufferedSamples { get => sampleBuffer.Count; }
-
-        private static readonly List<BufferedReader> bufferedReaders = [];
-        private static Thread readerThread;
-        private bool disposing = false;
+        
+        public bool Disposing = false;
 
         /// <summary>
         /// Creates a new buffered WaveProvider
@@ -33,23 +29,11 @@ namespace MonoStereo.SampleProviders
             WaveFormat = source.WaveFormat;
             SecondsToHold = secondsToHold;
             sampleProvider = source;
-
-            if (readerThread is null)
-            {
-                readerThread = new(CacheBuffers)
-                {
-                    Priority = ThreadPriority.AboveNormal
-                };
-
-                readerThread.Start();
-            }
-
-            bufferedReaders.Add(this);
         }
 
-        private void ReadAhead()
+        public void ReadAhead()
         {
-            if (disposing)
+            if (Disposing)
                 return;
 
             int samplesRequested = bufferLength - sampleBuffer.Count;
@@ -105,29 +89,6 @@ namespace MonoStereo.SampleProviders
             return read;
         }
 
-        private static void CacheBuffers()
-        {
-            for (int i = 0; i < bufferedReaders.Count; i++)
-            {
-                if (!AudioManager.IsRunning)
-                    break;
-
-                var reader = bufferedReaders[i];
-
-                if (reader?.disposing ?? false)
-                {
-                    bufferedReaders.RemoveAt(i);
-                    i--;
-                    continue;
-                }
-
-                reader?.ReadAhead();
-
-                if (i == bufferedReaders.Count - 1)
-                    i = -1;
-            }
-        }
-
         public void ClearBuffer()
         {
             lock (clearBufferLock)
@@ -138,7 +99,7 @@ namespace MonoStereo.SampleProviders
 
         public void Dispose()
         {
-            disposing = true;
+            Disposing = true;
         }
     }
 }
