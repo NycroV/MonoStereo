@@ -31,7 +31,7 @@
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="z440.atl.core" Version="6.1.0" />
+    <PackageReference Include="z440.atl.core" Version="6.4.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="docs\README.md">

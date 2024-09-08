@@ -45,7 +45,7 @@ namespace MonoStereo.AudioSources.Sounds
             WavReader = new(filePath);
 
             Comments = WavReader.Comments.ToDictionary();
-            Comments.ParseLoop(out long loopStart, out long loopEnd);
+            Comments.ParseLoop(out long loopStart, out long loopEnd, WaveFormat.Channels);
 
             LoopStart = loopStart;
             LoopEnd = loopEnd;

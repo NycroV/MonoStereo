@@ -48,7 +48,7 @@ namespace MonoStereo.AudioSources.Songs
 
             OggReader = new(filePath);
             Comments = OggReader.Comments.ComposeComments();
-            Comments.ParseLoop(out long loopStart, out long loopEnd);
+            Comments.ParseLoop(out long loopStart, out long loopEnd, WaveFormat.Channels);
 
             LoopStart = loopStart;
             LoopEnd = loopEnd;

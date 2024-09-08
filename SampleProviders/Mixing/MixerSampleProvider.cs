@@ -193,6 +193,12 @@ namespace MonoStereo.SampleProviders
         {
             lock (_sources)
             {
+                foreach (var source in _sources)
+                {
+                    if (source is IDisposable disposable)
+                        disposable.Dispose();
+                }
+
                 _sources.Clear();
             }
 
