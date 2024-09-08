@@ -54,9 +54,9 @@ namespace MonoStereo
             set => MasterMixer.Volume = value;
         }
 
-        private static readonly ArrayList activeSongs = ArrayList.Synchronized([]);
+        private static readonly List<Song> activeSongs = [];
 
-        private static readonly ArrayList activeSoundEffects = ArrayList.Synchronized([]);
+        private static readonly List<SoundEffect> activeSoundEffects = [];
 
         public static ReadOnlyCollection<Song> ActiveSongs { get { lock (activeSongs) { return activeSongs.Cast<Song>().ToList().AsReadOnly(); } } }
 
@@ -144,7 +144,7 @@ namespace MonoStereo
 
         internal static void Update()
         {
-            static void UpdateInputs(AudioMixer mixer, ArrayList newInputs)
+            static void UpdateInputs(AudioMixer mixer, IList newInputs)
             {
                 // The .ToList() calls duplicate the sources so as not to
                 // cause enumeration errors
