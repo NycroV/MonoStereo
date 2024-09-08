@@ -33,7 +33,7 @@ namespace MonoStereo.Encoding
         /// <summary>
         /// Length of the stream, in samples.
         /// </summary>
-        public override long Length => SampleProvider.Length;
+        public override long Length => SampleProvider.Length * WaveFormat.Channels;
 
         public string FileName { get; } = string.Empty;
 
@@ -42,8 +42,8 @@ namespace MonoStereo.Encoding
         /// </summary>
         public override long Position
         {
-            get => SampleProvider.SamplePosition;
-            set => SampleProvider.SamplePosition = value;
+            get => SampleProvider.SamplePosition * WaveFormat.Channels;
+            set => SampleProvider.SamplePosition = value / WaveFormat.Channels;
         }
 
         // This buffer can be static because it can only be used by 1 instance per thread
@@ -83,7 +83,7 @@ namespace MonoStereo.Encoding
         public long Seek(long samplePosition)
         {
             SampleProvider.Seek(samplePosition);
-            return SampleProvider.SamplePosition;
+            return Position;
         }
 
         public int StreamCount => SampleProvider.StreamCount;

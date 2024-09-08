@@ -40,46 +40,52 @@ namespace MonoStereo
 
             Comments.ParseLoop(out long loopStart, out long loopEnd, WaveFormat.Channels);
             AudioManager.CachedSounds.Add(this);
+
+            LoopStart = loopStart;
+            LoopEnd = loopEnd;
         }
 
         public CachedSoundEffect(ISampleProvider source, string fileName = "", IDictionary<string, string> comments = null)
         {
             FileName = fileName;
-            WaveFormat = source.WaveFormat;
 
             int samplesRead;
             float[] buffer = new float[AudioStandards.ReadBufferSize];
             List<float> audioData = [];
+            comments.ParseLoop(out long loopStart, out long loopEnd, AudioStandards.ChannelCount);
 
-            ISampleProvider resampleSource = source;
-
-            if (resampleSource.WaveFormat.SampleRate != AudioStandards.SampleRate)
+            if (source.WaveFormat.SampleRate != AudioStandards.SampleRate)
             {
-                float scalar = (float)AudioStandards.SampleRate / resampleSource.WaveFormat.SampleRate;
+                float scalar = AudioStandards.SampleRate / (float)source.WaveFormat.SampleRate;
+                source = new WdlResamplingSampleProvider(source, AudioStandards.SampleRate);
 
-                LoopStart = LoopStart <= 0 ? LoopStart : (long)(LoopStart * scalar);
-                LoopEnd = LoopEnd <= 0 ? LoopEnd : (long)(LoopEnd * scalar);
+                if (loopStart >= 0)
+                {
+                    loopStart = (long)(loopStart * scalar);
+                    loopStart -= loopStart % source.WaveFormat.Channels;
+                }
 
-                LoopStart = LoopStart <= 0 ? LoopStart : LoopStart - (LoopStart % resampleSource.WaveFormat.Channels);
-                LoopEnd = LoopEnd <= 0 ? LoopEnd : LoopEnd - (LoopEnd % resampleSource.WaveFormat.Channels);
-
-                resampleSource = new WdlResamplingSampleProvider(resampleSource, AudioStandards.SampleRate);
+                if (loopEnd >= 0)
+                {
+                    loopEnd = (long)(loopEnd * scalar);
+                    loopEnd -= loopEnd % source.WaveFormat.Channels;
+                }
             }
 
-            if (resampleSource.WaveFormat.Channels != AudioStandards.ChannelCount)
+            if (source.WaveFormat.Channels != AudioStandards.ChannelCount)
             {
-                if (resampleSource.WaveFormat.Channels != 1)
+                if (source.WaveFormat.Channels != 1)
                     throw new ArgumentException("Source must be in either stereo or mono!", nameof(source));
 
-                resampleSource = new MonoToStereoSampleProvider(resampleSource);
+                source = new MonoToStereoSampleProvider(source);
             }
 
-            LoopStart = LoopStart <= 0 ? LoopStart : LoopStart * AudioStandards.ChannelCount;
-            LoopEnd = LoopEnd <= 0 ? LoopEnd : LoopEnd * AudioStandards.ChannelCount;
+            LoopStart = loopStart;
+            LoopEnd = loopEnd;
 
             do
             {
-                samplesRead = resampleSource.Read(buffer, 0, buffer.Length);
+                samplesRead = source.Read(buffer, 0, buffer.Length);
                 audioData.AddRange(buffer.Take(samplesRead));
             }
             while (samplesRead > 0);
@@ -87,6 +93,7 @@ namespace MonoStereo
             AudioData = audioData.ToArray();
             Comments = comments?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
 
+            audioData.Clear();
             AudioManager.CachedSounds.Add(this);
         }
 
