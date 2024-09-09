@@ -3,7 +3,6 @@ using MonoStereo.AudioSources.Sounds;
 using MonoStereo.SampleProviders;
 using NAudio.Wave;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MonoStereo
 {
@@ -41,29 +40,7 @@ namespace MonoStereo
             set => Source.IsLooped = value;
         }
 
-        public override int ReadSource(float[] buffer, int offset, int count)
-        {
-            int samplesRead = 0;
-
-            if (PlaybackState == PlaybackState.Playing)
-                samplesRead = Source.Read(buffer, offset, count);
-
-            // If the sound effect is paused, we don't want the mixer to think it's stopped.
-            // Fill the buffer with empty samples to imitate "no audio".
-            else if (PlaybackState == PlaybackState.Paused)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    buffer[i] = 0;
-                    samplesRead++;
-                }
-            }
-
-            else
-                return 0;
-
-            return samplesRead;
-        }
+        public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);
 
         public override void Play()
         {

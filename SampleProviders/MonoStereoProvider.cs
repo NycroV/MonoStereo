@@ -45,13 +45,26 @@ namespace MonoStereo.SampleProviders
 
         public int Read(float[] buffer, int offset, int count)
         {
-            lock (filters)
+            if (PlaybackState == PlaybackState.Playing)
             {
-                for (int i = 1; i < filters.Count; i++)
-                    filters.ElementAt(i).Provider = filters.ElementAt(i - 1);
+                lock (filters)
+                {
+                    for (int i = 1; i < filters.Count; i++)
+                        filters.ElementAt(i).Provider = filters.ElementAt(i - 1);
 
-                return filters.Last().Read(buffer, offset, count);
+                    return filters.Last().Read(buffer, offset, count);
+                }
             }
+
+            if (PlaybackState == PlaybackState.Paused)
+            {
+                for (int i = 0; i < count; i++)
+                    buffer[offset + i] = 0;
+
+                return count;
+            }
+
+            return 0;
         }
 
         public abstract int ReadSource(float[] buffer, int offset, int count);
