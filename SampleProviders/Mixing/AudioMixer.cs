@@ -8,7 +8,7 @@ namespace MonoStereo.SampleProviders
 
         public override WaveFormat WaveFormat => Inputs.WaveFormat;
 
-        public override PlaybackState PlaybackState { get => PlaybackState.Playing; set { } }
+        public override PlaybackState PlaybackState { get; set; }
 
         public AudioMixer(float volume, params ISampleProvider[] initialInputs)
         {
