@@ -54,6 +54,26 @@ namespace MonoStereo
             set => MasterMixer.Volume = value;
         }
 
+        /// <summary>
+        /// The time in ms before audio reaches the output device.<br/>
+        /// To change this, use <see cref="AudioManager.ResetOutput(int?, int?)"/>
+        /// </summary>
+        public static int Latency
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// The target output device.<br/>
+        /// To change this, use <see cref="AudioManager.ResetOutput(int?, int?)"/>
+        /// </summary>
+        public static int DeviceNumber
+        {
+            get;
+            private set;
+        }
+
         private static readonly List<Song> activeSongs = [];
 
         private static readonly List<SoundEffect> activeSoundEffects = [];
@@ -92,7 +112,7 @@ namespace MonoStereo
         /// <param name="masterVolume">The master mixer volume</param>
         /// <param name="musicVolume">The volume for music</param>
         /// <param name="soundEffectVolume">The volume for sound effects</param>
-        public static void Initialize(Func<bool> shouldShutdown, int latency = 150, float masterVolume = 1f, float musicVolume = 1f, float soundEffectVolume = 1f)
+        public static void Initialize(Func<bool> shouldShutdown, int latency = 150, float masterVolume = 1f, float musicVolume = 1f, float soundEffectVolume = 1f, int deviceNumber = -1)
         {
             SoundMixer = new(soundEffectVolume);
             MusicMixer = new(musicVolume);
@@ -113,7 +133,14 @@ namespace MonoStereo
                 song.PlaybackState = PlaybackState.Stopped;
             };
 
-            Output = new() { DesiredLatency = latency };
+            DeviceNumber = deviceNumber;
+            Latency = latency;
+
+            Output = new()
+            {
+                DeviceNumber = deviceNumber,
+                DesiredLatency = latency
+            };
             Output.Init(MasterMixer);
             Output.Play();
 
@@ -181,11 +208,18 @@ namespace MonoStereo
             return caps;
         }
 
-        public static void ReassignAudioDevice(int deviceNumber)
+        public static void ResetOutput(int? latency = null, int? deviceNumber = null)
         {
             Output.Dispose();
 
-            Output = new() { DeviceNumber = deviceNumber };
+            DeviceNumber = deviceNumber ?? DeviceNumber;
+            Latency = latency ?? Latency;
+
+            Output = new()
+            {
+                DeviceNumber = DeviceNumber,
+                DesiredLatency = Latency
+            };
             Output.Init(MasterMixer);
 
             Output.Play();
