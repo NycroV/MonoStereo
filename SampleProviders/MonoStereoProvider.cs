@@ -20,15 +20,19 @@ namespace MonoStereo.SampleProviders
             set => filterBase.Volume = value;
         }
 
+        private int filterIndex = 0;
+
         private readonly FilterBase filterBase;
 
         public MonoStereoProvider()
         {
             filterBase = new(this);
-            filters.Add(filterBase);
+            AddFilter(filterBase);
         }
 
-        private readonly SortedSet<AudioFilter> filters = [];
+        // The int coupling allows for maintaining add order,
+        // as well as adding the same filter multiple times
+        private readonly SortedSet<(AudioFilter, int)> filters = new(new FilterComparer()); // Filter comparer sorts by filter priority then by add order
 
         public IEnumerable<AudioFilter> Filters
         {
@@ -36,7 +40,7 @@ namespace MonoStereo.SampleProviders
             {
                 // Remove the FilterBase from the available filters
                 AudioFilter[] castFilters;
-                lock (filters) { castFilters = filters.Cast<AudioFilter>().ToArray(); }
+                lock (filters) { castFilters = filters.Select(f => f.Item1).ToArray(); }
                 return castFilters.TakeLast(castFilters.Length - 1);
             }
         }
@@ -50,9 +54,13 @@ namespace MonoStereo.SampleProviders
                 lock (filters)
                 {
                     for (int i = 1; i < filters.Count; i++)
-                        filters.ElementAt(i).Provider = filters.ElementAt(i - 1);
+                    {
+                        var filter = filters.ElementAt(i).Item1;
+                        filter.Provider = filters.ElementAt(i - 1).Item1;
+                        filter.Source = this;
+                    }
 
-                    return filters.Last().Read(buffer, offset, count);
+                    return filters.Last().Item1.Read(buffer, offset, count);
                 }
             }
 
@@ -71,13 +79,14 @@ namespace MonoStereo.SampleProviders
 
         public void AddFilter(AudioFilter filter)
         {
-            lock (filters) { filters.Add(filter); }
+            lock (filters) { filters.Add((filter, filterIndex)); }
+            filterIndex++;
             filter.Apply(this);
         }
 
         public void RemoveFilter(AudioFilter filter)
         {
-            lock (filters) { filters.Remove(filter); }
+            lock (filters) { filters.Remove(filters.FirstOrDefault(f => f.Item1 == filter)); }
             filter.Unapply(this);
         }
 
@@ -86,7 +95,7 @@ namespace MonoStereo.SampleProviders
         {
             foreach (var filter in Filters.ToArray())
             {
-                filters.Remove(filter);
+                RemoveFilter(filter);
                 filter.Unapply(this);
             }
         }
@@ -107,7 +116,7 @@ namespace MonoStereo.SampleProviders
 
             lock (filters)
             {
-                foreach (var filter in filters.Cast<AudioFilter>())
+                foreach (var filter in filters.Select(f => f.Item1).ToArray())
                     filter.Dispose();
 
                 filters.Clear();
@@ -120,8 +129,6 @@ namespace MonoStereo.SampleProviders
     internal class FilterBase(MonoStereoProvider stereoProvider) : AudioFilter
     {
         private readonly MonoStereoProvider provider = stereoProvider;
-
-        public override ISampleProvider Provider { get => provider; }
 
         public override FilterPriority Priority => FilterPriority.ApplyFirst;
 
