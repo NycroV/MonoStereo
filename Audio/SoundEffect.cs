@@ -14,7 +14,7 @@ namespace MonoStereo
         public SoundEffect(CachedSoundEffect cachedSound) : this(new CachedSoundEffectReader(cachedSound))
         { }
 
-        private ISoundEffectSource Source { get; set; } = source;
+        public ISoundEffectSource Source { get; set; } = source;
 
         public override WaveFormat WaveFormat { get => Source.WaveFormat; }
 
@@ -32,12 +32,6 @@ namespace MonoStereo
         {
             get => Source.Position;
             set => Source.Position = value;
-        }
-
-        public bool IsLooped
-        {
-            get => Source.IsLooped;
-            set => Source.IsLooped = value;
         }
 
         public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);

@@ -8,7 +8,7 @@ namespace MonoStereo.AudioSources.Songs
 {
     // This is essentially just a wrapper on an OggReader, with support for automatic looping.
     // MonoStereo song files are compiled as OggFiles by default.
-    public class SongReader : ISongSource
+    public class SongReader : ILoopableSongSource
     {
         public string FileName { get; private set; }
 

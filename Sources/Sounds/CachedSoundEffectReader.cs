@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace MonoStereo.AudioSources.Sounds
 {
-    public class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ISoundEffectSource
+    public class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ILoopableSoundEffectSource
     {
         public string FileName { get => CachedSoundEffect.FileName; }
 

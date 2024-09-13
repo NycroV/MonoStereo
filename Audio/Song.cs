@@ -3,7 +3,6 @@ using MonoStereo.AudioSources.Songs;
 using MonoStereo.SampleProviders;
 using NAudio.Wave;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MonoStereo
 {
@@ -12,7 +11,7 @@ namespace MonoStereo
         public Song(string fileName) : this(new SongReader(fileName))
         { }
 
-        private ISongSource Source { get; set; } = source;
+        public ISongSource Source { get; set; } = source;
 
         public override WaveFormat WaveFormat { get => Source.WaveFormat; }
 
@@ -30,12 +29,6 @@ namespace MonoStereo
         {
             get => Source.Position;
             set => Source.Position = value;
-        }
-
-        public bool IsLooped
-        {
-            get => Source.IsLooped;
-            set => Source.IsLooped = value;
         }
 
         public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);

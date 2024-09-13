@@ -42,18 +42,6 @@ namespace MonoStereo.AudioSources.Songs
 
         public long Length => Source.Length;
 
-        public bool IsLooped
-        {
-            get => Source.IsLooped;
-            set
-            {
-                if (Source.IsLooped != value)
-                    Reader.ClearBuffer();
-
-                Source.IsLooped = value;
-            }
-        }
-
         public long Position
         {
             get => Source.Position - Reader.BufferedSamples;

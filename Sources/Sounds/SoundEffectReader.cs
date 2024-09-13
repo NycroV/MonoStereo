@@ -9,7 +9,7 @@ namespace MonoStereo.AudioSources.Sounds
 {
     // This is essentually just a wrapper on the MonoStereo SoundEffectFileReader,
     // with support for automatic looping.
-    public class SoundEffectReader : ISoundEffectSource
+    public class SoundEffectReader : ILoopableSoundEffectSource
     {
         public string FileName { get; private set; }
 
