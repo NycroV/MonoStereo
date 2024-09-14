@@ -18,7 +18,7 @@ namespace MonoStereo.SampleProviders
         private readonly ConcurrentQueue<float> sampleBuffer = [];
         private float[] inBuffer;
         public int BufferedSamples { get => sampleBuffer.Count; }
-        
+
         public bool Disposing = false;
 
         /// <summary>
@@ -46,19 +46,19 @@ namespace MonoStereo.SampleProviders
 
                 lock (clearBufferLock)
                 {
-                    int read = sampleProvider.Read(inBuffer, 0, samplesRequested);
+                int read = sampleProvider.Read(inBuffer, 0, samplesRequested);
 
-                    if (read > 0)
-                    {
-                        sourceSamplesAvailable = true;
-                        for (int i = 0; i < read; i++)
-                            sampleBuffer.Enqueue(inBuffer[i]);
-                    }
-
-                    else
-                        sourceSamplesAvailable = false;
+                if (read > 0)
+                {
+                    sourceSamplesAvailable = true;
+                    for (int i = 0; i < read; i++)
+                        sampleBuffer.Enqueue(inBuffer[i]);
                 }
+
+                else
+                    sourceSamplesAvailable = false;
             }
+        }
         }
 
         /// <summary>
@@ -93,8 +93,8 @@ namespace MonoStereo.SampleProviders
         {
             lock (clearBufferLock)
             {
-                sampleBuffer.Clear();
-            }
+            sampleBuffer.Clear();
+        }
         }
 
         public void Dispose()

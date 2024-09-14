@@ -12,7 +12,7 @@ namespace MonoStereo
         public Song(string fileName) : this(new SongReader(fileName))
         { }
 
-        private ISongSource Source { get; set; } = source;
+        public ISongSource Source { get; set; } = source;
 
         public override WaveFormat WaveFormat { get => Source.WaveFormat; }
 

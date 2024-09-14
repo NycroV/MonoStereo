@@ -2,10 +2,10 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>MonoStereo.Slim</Title>
+    <Title>MonoStereo</Title>
     <Authors>Nycro</Authors>
     <Company>$(AssemblyName)</Company>
-    <Description>A portable NAudio based audio engine.</Description>
+    <Description>An NAudio based audio engine for MonoGame.</Description>
     <Version>1.2.7</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -14,19 +14,8 @@
     <PackageReadmeFile>docs\README.md</PackageReadmeFile>
     <PackageLicenseFile>docs\LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/NycroV/MonoStereo/tree/master</RepositoryUrl>
-    <PackageTags>Audio;Audio Engine</PackageTags>
-    <AssemblyName>$(MSBuildProjectName).Slim</AssemblyName>
-    <BaseOutputPath>bin\slim\</BaseOutputPath>
-    <BaseIntermediateOutputPath>obj\slim\</BaseIntermediateOutputPath>
+    <PackageTags>MonoGame;Audio;Audio Engine</PackageTags>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="bin\**" />
-    <Compile Remove="obj\**" />
-    <EmbeddedResource Remove="bin\**" />
-    <EmbeddedResource Remove="obj\**" />
-    <None Remove="bin\**" />
-    <None Remove="obj\**" />
-  </ItemGroup>
   <ItemGroup>
     <Content Include="docs\Icon.ico" />
   </ItemGroup>

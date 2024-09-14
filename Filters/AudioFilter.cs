@@ -18,7 +18,9 @@ namespace MonoStereo.Filters
 
     public abstract class AudioFilter : ISampleProvider, IDisposable, IComparable<AudioFilter>
     {
-        public virtual ISampleProvider Provider { get; set; }
+        public ISampleProvider Provider { get; set; }
+
+        public MonoStereoProvider Source { get; set; }
 
         public virtual FilterPriority Priority { get => FilterPriority.None; }
 

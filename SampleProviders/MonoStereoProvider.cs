@@ -30,7 +30,7 @@ namespace MonoStereo.SampleProviders
 
         private readonly SortedSet<AudioFilter> filters = [];
 
-        public IEnumerable<AudioFilter> Filters
+        public virtual IEnumerable<AudioFilter> Filters
         {
             get
             {
@@ -107,7 +107,7 @@ namespace MonoStereo.SampleProviders
 
             lock (filters)
             {
-                foreach (var filter in filters.Cast<AudioFilter>())
+                foreach (var filter in filters.Select(f => f.Item1).ToArray())
                     filter.Dispose();
 
                 filters.Clear();
@@ -120,8 +120,6 @@ namespace MonoStereo.SampleProviders
     internal class FilterBase(MonoStereoProvider stereoProvider) : AudioFilter
     {
         private readonly MonoStereoProvider provider = stereoProvider;
-
-        public override ISampleProvider Provider { get => provider; }
 
         public override FilterPriority Priority => FilterPriority.ApplyFirst;
 
