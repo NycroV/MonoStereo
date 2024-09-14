@@ -30,7 +30,7 @@ namespace MonoStereo.SampleProviders
             AddFilter(filterBase);
         }
 
-        private readonly SortedSet<FilterEntry> filters = new(new FilterComparer());
+        private readonly SortedSet<FilterEntry> filters = [];
 
         public virtual IEnumerable<AudioFilter> Filters
         {
@@ -77,17 +77,13 @@ namespace MonoStereo.SampleProviders
 
         public void AddFilter(AudioFilter filter)
         {
-            lock (filters)
-            {
-                filters.Add(new(filter, filterIndex));
-                filterIndex++;
-            }
+            lock (filters) { filters.Add(new(filter, filterIndex++)); }
             filter.Apply(this);
         }
 
         public void RemoveFilter(AudioFilter filter)
         {
-            lock (filters) { filters.Remove(filters.FirstOrDefault(s => s.Filter == filter)); }
+            lock (filters) { filters.Remove(filters.FirstOrDefault(entry => entry.Filter == filter)); }
             filter.Unapply(this);
         }
 
@@ -95,10 +91,7 @@ namespace MonoStereo.SampleProviders
         public void ClearFilters()
         {
             foreach (var filter in Filters.ToArray())
-            {
                 RemoveFilter(filter);
-                filter.Unapply(this);
-            }
         }
 
         public abstract void Play();
@@ -117,8 +110,7 @@ namespace MonoStereo.SampleProviders
 
             lock (filters)
             {
-                var allFilters = filters.Select(entry => entry.Filter).ToArray();
-                foreach (var filter in allFilters)
+                foreach (var filter in filters.Select(entry => entry.Filter).ToArray())
                     filter.Dispose();
 
                 filters.Clear();
@@ -128,9 +120,15 @@ namespace MonoStereo.SampleProviders
         }
     }
 
-    internal class FilterBase(MonoStereoProvider stereoProvider) : AudioFilter
+    internal class FilterBase : AudioFilter
     {
-        private readonly MonoStereoProvider provider = stereoProvider;
+        public FilterBase(MonoStereoProvider stereoProvider)
+        {
+            provider = stereoProvider;
+            Provider = stereoProvider;
+        }
+
+        public readonly MonoStereoProvider provider;
 
         public override FilterPriority Priority => FilterPriority.ApplyFirst;
 
