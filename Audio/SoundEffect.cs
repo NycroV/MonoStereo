@@ -14,7 +14,7 @@ namespace MonoStereo
         public SoundEffect(CachedSoundEffect cachedSound) : this(new CachedSoundEffectReader(cachedSound))
         { }
 
-        private ISoundEffectSource Source { get; set; } = source;
+        public ISoundEffectSource Source { get; set; } = source;
 
         public override WaveFormat WaveFormat { get => Source.WaveFormat; }
 
