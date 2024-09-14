@@ -42,13 +42,24 @@ namespace MonoStereo.AudioSources.Songs
 
         public long Length => Source.Length;
 
+        private readonly object positionLock = new();
+
         public long Position
         {
-            get => Source.Position - Reader.BufferedSamples;
+            get
+            {
+                lock (positionLock)
+                {
+                    return Source.Position - Reader.BufferedSamples;
+                }
+            }
             set
             {
-                Source.Position = value;
-                Reader.ClearBuffer();
+                lock (positionLock)
+                {
+                    Reader.ClearBuffer();
+                    Source.Position = value;
+                }
             }
         }
 
@@ -60,7 +71,13 @@ namespace MonoStereo.AudioSources.Songs
             Source.Close();
         }
 
-        public int Read(float[] buffer, int offset, int count) => Reader.Read(buffer, offset, count);
+        public int Read(float[] buffer, int offset, int count)
+        {
+            lock (positionLock)
+            {
+                return Reader.Read(buffer, offset, count);
+            }
+        }
 
         private static void CacheBuffers()
         {
@@ -79,7 +96,12 @@ namespace MonoStereo.AudioSources.Songs
                 }
 
                 if (reader?.PlaybackState == PlaybackState.Playing)
-                    reader?.Reader?.ReadAhead();
+                {
+                    lock (reader?.positionLock)
+                    {
+                        reader?.Reader?.ReadAhead();
+                    }
+                }
 
                 if (i == bufferedReaders.Count - 1)
                     i = -1;

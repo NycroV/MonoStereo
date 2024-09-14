@@ -34,7 +34,7 @@ namespace MonoStereo.SampleProviders
         // as well as adding the same filter multiple times
         private readonly SortedSet<(AudioFilter, int)> filters = new(new FilterComparer()); // Filter comparer sorts by filter priority then by add order
 
-        public IEnumerable<AudioFilter> Filters
+        public virtual IEnumerable<AudioFilter> Filters
         {
             get
             {
