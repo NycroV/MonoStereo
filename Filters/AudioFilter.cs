@@ -16,9 +16,11 @@ namespace MonoStereo.Filters
         ApplyLast
     }
 
-    public abstract class AudioFilter : ISampleProvider, IDisposable, IComparable<AudioFilter>
+    public abstract class AudioFilter : ISampleProvider, IDisposable
     {
-        public virtual ISampleProvider Provider { get; set; }
+        public ISampleProvider Provider { get; set; }
+
+        public MonoStereoProvider Source { get; set; }
 
         public virtual FilterPriority Priority { get => FilterPriority.None; }
 
@@ -42,5 +44,18 @@ namespace MonoStereo.Filters
         }
 
         public int CompareTo(AudioFilter other) => Priority.CompareTo(other.Priority);
+    }
+
+    internal class FilterComparer : IComparer<(AudioFilter, int)>
+    {
+        public int Compare((AudioFilter, int) x, (AudioFilter, int) y)
+        {
+            int compare = x.Item1.CompareTo(y.Item1);
+
+            if (compare == 0)
+                compare = x.Item2.CompareTo(y.Item2);
+
+            return compare;
+        }
     }
 }
