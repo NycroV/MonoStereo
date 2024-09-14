@@ -17,7 +17,7 @@ namespace MonoStereo.SampleProviders
         private readonly ConcurrentQueue<float> sampleBuffer = [];
         private float[] inBuffer;
         public int BufferedSamples { get => sampleBuffer.Count; }
-        
+
         public bool Disposing = false;
 
         /// <summary>
