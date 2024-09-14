@@ -25,6 +25,7 @@ namespace MonoStereo.AudioSources.Songs
                 readerThread.Start();
             }
 
+            cachedPosition = source.Position;
             bufferedReaders.Add(this);
         }
 
@@ -42,24 +43,28 @@ namespace MonoStereo.AudioSources.Songs
 
         public long Length => Source.Length;
 
+        private long cachedPosition;
+
         public bool IsLooped
         {
             get => Source.IsLooped;
             set
             {
                 if (Source.IsLooped != value)
-                    Reader.ClearBuffer();
-
-                Source.IsLooped = value;
+                {
+                    Source.IsLooped = value;
+                    Position = cachedPosition;
+                }
             }
         }
 
         public long Position
         {
-            get => Source.Position - Reader.BufferedSamples;
+            get => cachedPosition;
             set
             {
                 Source.Position = value;
+                cachedPosition = value;
                 Reader.ClearBuffer();
             }
         }
@@ -72,7 +77,12 @@ namespace MonoStereo.AudioSources.Songs
             Source.Close();
         }
 
-        public int Read(float[] buffer, int offset, int count) => Reader.Read(buffer, offset, count);
+        public int Read(float[] buffer, int offset, int count)
+        {
+            int read = Reader.Read(buffer, offset, count);
+            cachedPosition += read;
+            return read;
+        }
 
         private static void CacheBuffers()
         {
