@@ -29,7 +29,7 @@ namespace MonoStereo.AudioSources.Songs
             bufferedReaders.Add(this);
         }
 
-        private readonly ISongSource Source;
+        public readonly ISongSource Source;
 
         private readonly BufferedReader Reader;
 
