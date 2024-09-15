@@ -10,7 +10,7 @@ namespace MonoStereo.Filters
 
         //Limiter constants
         internal const float LIM_THRESH = 0.95f;
-        internal const float LIM_RANGE = (1f - LIM_THRESH);
+        internal const float LIM_RANGE = 1f - LIM_THRESH;
         internal const float PiOver2 = 1.57079637f;
 
         internal const int fftSize = 4096;
@@ -23,16 +23,13 @@ namespace MonoStereo.Filters
             set { pitch = value; }
         }
 
-        public override void PostProcess(float[] buffer, int offset, int samplesRead)
+        public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShift(pitch, shifterLeft, shifterRight, buffer, offset, samplesRead);
+
+        internal static void PitchShift(float pitch, SmbPitchShifter shifterLeft, SmbPitchShifter shifterRight, float[] buffer, int offset, int samplesRead)
         {
             if (pitch == 1f)
                 return;
 
-            PitchShift(pitch, shifterLeft, shifterRight, buffer, offset, samplesRead);
-        }
-
-        internal static void PitchShift(float pitch, SmbPitchShifter shifterLeft, SmbPitchShifter shifterRight, float[] buffer, int offset, int samplesRead)
-        {
             int sampleRate = AudioStandards.SampleRate;
             var left = new float[(samplesRead >> 1)];
             var right = new float[(samplesRead >> 1)];

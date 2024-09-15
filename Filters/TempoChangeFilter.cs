@@ -26,29 +26,42 @@ namespace MonoStereo.Filters
                 if (speed == value)
                     return;
 
-                speed = value;
-                resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
+                lock (pitchLock)
+                {
+                    speed = value;
+                    resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
 
-                if (value != 0)
-                    pitch = 1f / value;
+                    if (value != 0)
+                        pitch = 1f / value;
 
-                else
-                    pitch = 1f;
+                    else
+                        pitch = 1f;
+                }
             }
         }
 
         private float speed = float.NaN;
         private float pitch = float.NaN;
+        private readonly object pitchLock = new();
+
+        private float speedCache = float.NaN;
+        private float pitchCache = float.NaN;
 
         private readonly SmbPitchShifter shifterLeft = new();
         private readonly SmbPitchShifter shifterRight = new();
 
         public override int ModifyRead(float[] buffer, int offset, int count)
         {
-            if (speed == 1f)
+            lock (pitchLock)
+            {
+                speedCache = speed;
+                pitchCache = pitch;
+            }
+
+            if (speedCache == 1f)
                 return base.ModifyRead(buffer, offset, count);
 
-            if (speed == 0f)
+            if (speedCache == 0f)
             {
                 for (int i = 0; i < count; i++)
                     buffer[offset + i] = 0f;
@@ -65,12 +78,6 @@ namespace MonoStereo.Filters
             return outAvailable * AudioStandards.ChannelCount;
         }
 
-        public override void PostProcess(float[] buffer, int offset, int samplesRead)
-        {
-            if (pitch == 1f)
-                return;
-
-            PitchShiftFilter.PitchShift(pitch, shifterLeft, shifterRight, buffer, offset, samplesRead);
-        }
+        public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShiftFilter.PitchShift(pitchCache, shifterLeft, shifterRight, buffer, offset, samplesRead);
     }
 }
