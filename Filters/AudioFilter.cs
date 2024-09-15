@@ -43,17 +43,17 @@ namespace MonoStereo.Filters
             return samplesRead;
         }
 
-        public int CompareTo(AudioFilter other) => Priority.CompareTo(other.Priority);
+        internal int CompareTo(AudioFilter other) => Priority.CompareTo(other.Priority);
     }
 
-    internal class FilterComparer : IComparer<(AudioFilter, int)>
+    internal record class FilterEntry(AudioFilter Filter, uint AddIndex) : IComparable<FilterEntry>
     {
-        public int Compare((AudioFilter, int) x, (AudioFilter, int) y)
+        public int CompareTo(FilterEntry other)
         {
-            int compare = x.Item1.CompareTo(y.Item1);
+            int compare = Filter.CompareTo(other.Filter);
 
             if (compare == 0)
-                compare = x.Item2.CompareTo(y.Item2);
+                compare = AddIndex.CompareTo(other.AddIndex);
 
             return compare;
         }

@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using NAudio.Dsp;
+﻿using NAudio.Dsp;
 using System;
 
 namespace MonoStereo.Filters
@@ -16,6 +15,7 @@ namespace MonoStereo.Filters
         //Limiter constants
         const float LIM_THRESH = 0.95f;
         const float LIM_RANGE = (1f - LIM_THRESH);
+        const float PiOver2 = 1.57079637f;
 
         private float pitch = pitch;
         public float PitchFactor
@@ -58,12 +58,12 @@ namespace MonoStereo.Filters
             if ((LIM_THRESH < sample))
             {
                 res = (sample - LIM_THRESH) / LIM_RANGE;
-                res = (float)((Math.Atan(res) / MathHelper.PiOver2) * LIM_RANGE + LIM_THRESH);
+                res = (float)((Math.Atan(res) / PiOver2) * LIM_RANGE + LIM_THRESH);
             }
             else if ((sample < -LIM_THRESH))
             {
                 res = -(sample + LIM_THRESH) / LIM_RANGE;
-                res = -(float)((Math.Atan(res) / MathHelper.PiOver2) * LIM_RANGE + LIM_THRESH);
+                res = -(float)((Math.Atan(res) / PiOver2) * LIM_RANGE + LIM_THRESH);
             }
             else
             {
