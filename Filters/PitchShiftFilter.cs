@@ -5,17 +5,16 @@ namespace MonoStereo.Filters
 {
     public class PitchShiftFilter(float pitch) : AudioFilter
     {
-        // Don't even worry about naming conventions here, they follow audio standards, not coding standards
-
-        private readonly int fftSize = 4096;
-        private readonly long osamp = 4L;
         private readonly SmbPitchShifter shifterLeft = new();
         private readonly SmbPitchShifter shifterRight = new();
 
         //Limiter constants
-        const float LIM_THRESH = 0.95f;
-        const float LIM_RANGE = (1f - LIM_THRESH);
-        const float PiOver2 = 1.57079637f;
+        internal const float LIM_THRESH = 0.95f;
+        internal const float LIM_RANGE = (1f - LIM_THRESH);
+        internal const float PiOver2 = 1.57079637f;
+
+        internal const int fftSize = 4096;
+        internal const long osamp = 4L;
 
         private float pitch = pitch;
         public float PitchFactor
@@ -29,6 +28,11 @@ namespace MonoStereo.Filters
             if (pitch == 1f)
                 return;
 
+            PitchShift(pitch, shifterLeft, shifterRight, buffer, offset, samplesRead);
+        }
+
+        internal static void PitchShift(float pitch, SmbPitchShifter shifterLeft, SmbPitchShifter shifterRight, float[] buffer, int offset, int samplesRead)
+        {
             int sampleRate = AudioStandards.SampleRate;
             var left = new float[(samplesRead >> 1)];
             var right = new float[(samplesRead >> 1)];
@@ -55,15 +59,15 @@ namespace MonoStereo.Filters
         private static float Limiter(float sample)
         {
             float res;
-            if ((LIM_THRESH < sample))
+            if (LIM_THRESH < sample)
             {
                 res = (sample - LIM_THRESH) / LIM_RANGE;
-                res = (float)((Math.Atan(res) / PiOver2) * LIM_RANGE + LIM_THRESH);
+                res = (float)(Math.Atan(res) / PiOver2 * LIM_RANGE + LIM_THRESH);
             }
-            else if ((sample < -LIM_THRESH))
+            else if (sample < -LIM_THRESH)
             {
                 res = -(sample + LIM_THRESH) / LIM_RANGE;
-                res = -(float)((Math.Atan(res) / PiOver2) * LIM_RANGE + LIM_THRESH);
+                res = -(float)(Math.Atan(res) / PiOver2 * LIM_RANGE + LIM_THRESH);
             }
             else
             {
