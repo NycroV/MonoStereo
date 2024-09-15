@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MonoStereo.Filters
+﻿namespace MonoStereo.Filters
 {
     public class PanFilter(float pan = 0f) : AudioFilter
     {
@@ -11,21 +9,43 @@ namespace MonoStereo.Filters
             if (Panning == 0f)
                 return;
 
-            float normPan = (-Panning + 1f) / 2f;
-            float leftChannel = (float)Math.Sqrt(normPan);
-            float rightChannel = (float)Math.Sqrt(1 - normPan);
+            // The below panning strategy is the same panning strategy used by FAudio.
+            // Volume is not only adjusted on left/right channels, but channels are mixed
+            // in accordance with where the sound should actually be coming from.
 
-            for (int i = 0; i < samplesRead; i++)
+            float leftChannelLeftMultiplier;
+            float leftChannelRightMultiplier;
+
+            float rightChannelLeftMultiplier;
+            float rightChannelRightMultiplier;
+
+            // On the left...
+            if (Panning < 0f)
             {
-                if (i % 2 == 0)
-                {
-                    buffer[offset + i] *= leftChannel;
-                }
+                leftChannelLeftMultiplier = 0.5f * Panning + 1f;
+                leftChannelRightMultiplier = 0.5f * -Panning;
 
-                else
-                {
-                    buffer[offset + i] *= rightChannel;
-                }
+                rightChannelLeftMultiplier = 0f;
+                rightChannelRightMultiplier = Panning + 1f;
+            }
+
+            // On the right...
+            else
+            {
+                leftChannelLeftMultiplier = -Panning + 1f;
+                leftChannelRightMultiplier = 0f;
+
+                rightChannelLeftMultiplier = 0.5f * Panning;
+                rightChannelRightMultiplier = 0.5f * -Panning + 1f;
+            }
+
+            for (int i = 0; i < samplesRead; i += 2)
+            {
+                float leftChannel = buffer[offset + i];
+                float rightChannel = buffer[offset + i + 1];
+
+                buffer[offset + i] = (leftChannel * leftChannelLeftMultiplier) + (rightChannel * leftChannelRightMultiplier);
+                buffer[offset + i + 1] = (leftChannel * rightChannelLeftMultiplier) + (rightChannel * rightChannelRightMultiplier);
             }
         }
     }
