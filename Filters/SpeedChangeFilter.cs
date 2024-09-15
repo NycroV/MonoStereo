@@ -35,18 +35,24 @@ namespace MonoStereo.Filters
 
         public override int ModifyRead(float[] buffer, int offset, int count)
         {
-            if (_speed != 1f)
+            if (_speed == 1f)
+                return base.ModifyRead(buffer, offset, count);
+
+            if (_speed == 0f)
             {
-                int framesRequested = count / AudioStandards.ChannelCount;
-                int inNeeded = resampler.ResamplePrepare(framesRequested, AudioStandards.ChannelCount, out float[] inBuffer, out int inBufferOffset);
+                for (int i = 0; i < count; i++)
+                    buffer[offset + i] = 0f;
 
-                int inAvailable = Provider.Read(inBuffer, inBufferOffset, inNeeded * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
-                int outAvailable = resampler.ResampleOut(buffer, offset, inAvailable, framesRequested, AudioStandards.ChannelCount);
-
-                return outAvailable * AudioStandards.ChannelCount;
+                return count;
             }
 
-            return base.ModifyRead(buffer, offset, count);
-        }      
+            int framesRequested = count / AudioStandards.ChannelCount;
+            int inNeeded = resampler.ResamplePrepare(framesRequested, AudioStandards.ChannelCount, out float[] inBuffer, out int inBufferOffset);
+
+            int inAvailable = Provider.Read(inBuffer, inBufferOffset, inNeeded * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
+            int outAvailable = resampler.ResampleOut(buffer, offset, inAvailable, framesRequested, AudioStandards.ChannelCount);
+
+            return outAvailable * AudioStandards.ChannelCount;
+        }
     }
 }
