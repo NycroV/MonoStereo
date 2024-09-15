@@ -5,7 +5,7 @@
     <Title>MonoStereo.Slim</Title>
     <Authors>Nycro</Authors>
     <Company>$(AssemblyName)</Company>
-    <Description>A portable NAudio based audio engine.</Description>
+    <Description>An NAudio based audio engine for MonoGame.</Description>
     <Version>1.2.7</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

@@ -1,31 +1,42 @@
-﻿using MonoStereo.Encoding;
+﻿using Microsoft.Xna.Framework.Content.Pipeline;
+using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler;
+using MonoStereo.Encoding;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.IO;
 
 namespace MonoStereo.Pipeline
 {
-    public class SoundEffectWriter(AudioFileReader reader)
+    [ContentTypeWriter]
+    public class SoundEffectWriter : ContentTypeWriter<SoundEffectFileWriter>
     {
-        public AudioFileReader Reader { get; private set; } = reader;
-
-        public void Write(string fileName)
+        protected override void Write(ContentWriter output, SoundEffectFileWriter value)
         {
-            FileStream stream = File.Create(fileName);
-            SoundEffectFileWriter writer = new()
-            {
-                Reader = Reader,
-                FileName = fileName
-            };
+            value.Logger.LogMessage("Writing sound effect file: {0}", value.FileName);
 
-            ISampleProvider resampleSource = Reader;
+            Stream stream = output.BaseStream;
+            long length = stream.Length;
+            stream.Position = 0;
+
+            ISampleProvider resampleSource = value.Reader;
+
+            if (resampleSource.WaveFormat.SampleRate != AudioStandards.SampleRate)
+                resampleSource = new WdlResamplingSampleProvider(resampleSource, AudioStandards.SampleRate);
+
             if (resampleSource.WaveFormat.Channels != AudioStandards.ChannelCount)
                 resampleSource = new MonoToStereoSampleProvider(resampleSource);
 
             WdlResamplingSampleProvider resampler = new(resampleSource, AudioStandards.SampleRate);
-            writer.WriteToWav(resampler, stream);
+            value.WriteToWav(resampler, stream);
 
-            stream.Dispose();
+            if (stream.Position < length)
+                stream.SetLength(stream.Position);
+
+            value.Logger.LogMessage("Finished writing audio file: {0}", value.FileName);
         }
+
+        public override string GetRuntimeReader(TargetPlatform targetPlatform) => "";
+
+        public override string GetRuntimeType(TargetPlatform targetPlatform) => "";
     }
 }

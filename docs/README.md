@@ -49,7 +49,11 @@ You also have access to a few extra variables on startup, namely `latency`, `mas
 - `masterVolume`, `musicVolume`, and `soundEffectVolume` are pretty self explanatory. These values should be `float`s that range from 0-1, with 1 being max volume, and 0 being mute. If you want to change the music, sound, or master volumes later, they are available with the properties `AudioManager.MasterVolume`, `AudioManager.MusicVolume`, and `AudioManager.SoundEffectVolume`.
 
 ### Playback
-Playing audio with MonoStereo is very simple. To play a song, use the following:
+Before playing audio, you'll want to compile your sources to the correct MonoStereo format. Although this isn't *required*, it is the only method that is supported by default in MonoStereo. Having a standardized format for both songs and sound effects drastically helps to improve performance in practice.
+
+First, add a reference to `MonoStereo.dll` in your `Content.mgcb` file (or whichever pipeline file you want to use). If you need access to this .dll, simply build your game once after adding MonoStereo as a project, and it should appear in your output folder. From there, choose the MonoStereo Audio Importer for all audio you want to compile, and the corresponding song or sound effect processor, depending on how you plan to use the audio.
+
+After compiling, playing audio with MonoStereo is very simple. To play a song, use the following:
 ```cs
 Song song = new Song("path/to/song");
 song.Play();
