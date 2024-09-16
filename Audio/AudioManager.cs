@@ -124,13 +124,13 @@ namespace MonoStereo
             SoundMixer.Inputs.MixerInputEnded += (sender, e) =>
             {
                 SoundEffect sound = e.SampleProvider as SoundEffect;
-                sound.PlaybackState = PlaybackState.Stopped;
+                sound.Stop();
             };
 
             MusicMixer.Inputs.MixerInputEnded += (sender, e) =>
             {
                 Song song = e.SampleProvider as Song;
-                song.PlaybackState = PlaybackState.Stopped;
+                song.Stop();
             };
 
             DeviceNumber = deviceNumber;
