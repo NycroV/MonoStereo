@@ -104,15 +104,12 @@ namespace MonoStereo.SampleProviders
 
         public virtual void Close() { }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             Close();
 
             lock (filters)
             {
-                foreach (var filter in filters.Select(entry => entry.Filter).ToArray())
-                    filter.Dispose();
-
                 filters.Clear();
             }
 
