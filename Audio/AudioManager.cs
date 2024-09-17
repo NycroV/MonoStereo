@@ -17,7 +17,7 @@ namespace MonoStereo
 
         public static bool IsRunning { get; private set; }
 
-        public static IMonoStereoWavePlayer Output { get; set; }
+        public static IMonoStereoOutput Output { get; set; }
 
         public static AudioMixer SoundMixer { get; private set; }
 
@@ -89,7 +89,7 @@ namespace MonoStereo
 
         /// <summary>
         /// Initializes the MonoStereo Audio Engine. Note that using this method overload will default to WinMM as an output source.<br/>
-        /// If you would like to supply your own output source, use <see cref="InitializeCustomOutput(IMonoStereoWavePlayer, Func{bool}, float, float, float)"/> instead.
+        /// If you would like to supply your own output source, use <see cref="InitializeCustomOutput(IMonoStereoOutput, Func{bool}, float, float, float)"/> instead.
         /// </summary>
         /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
         /// <param name="masterVolume">The master mixer volume</param>
@@ -119,16 +119,16 @@ namespace MonoStereo
         }
 
         /// <summary>
-        /// Initializes the MonoStereo Audio Engine using a custom <see cref="IMonoStereoWavePlayer"/>. You should only use this if you know what you're doing.<br/>
+        /// Initializes the MonoStereo Audio Engine using a custom <see cref="IMonoStereoOutput"/>. You should only use this if you know what you're doing.<br/>
         /// Providing a custom output allows you to change how audio is actually played back to the user.
         /// </summary>
-        /// <param name="customPlayer">The custom <see cref="IMonoStereoWavePlayer"/> the audio engine should output to.</param>
+        /// <param name="customOutput">The custom <see cref="IMonoStereoOutput"/> the audio engine should output to.</param>
         /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
         /// <param name="masterVolume">The master mixer volume</param>
         /// <param name="musicVolume">The volume for music</param>
         /// <param name="soundEffectVolume">The volume for sound effects</param>
         public static void InitializeCustomOutput(
-            IMonoStereoWavePlayer customPlayer,
+            IMonoStereoOutput customOutput,
             Func<bool> shouldShutdown,
             
             float masterVolume = 1f,
@@ -137,10 +137,7 @@ namespace MonoStereo
         {
             SoundMixer = new(soundEffectVolume);
             MusicMixer = new(musicVolume);
-            MasterMixer = new(masterVolume);
-
-            MasterMixer.AddInput(SoundMixer);
-            MasterMixer.AddInput(MusicMixer);
+            MasterMixer = new(masterVolume, SoundMixer, MusicMixer);
 
             SoundMixer.Inputs.MixerInputEnded += (sender, e) =>
             {
@@ -154,7 +151,7 @@ namespace MonoStereo
                 song.Stop();
             };
 
-            Output = customPlayer;
+            Output = customOutput;
 
             Output.Init(MasterMixer);
             Output.Play();
@@ -207,6 +204,7 @@ namespace MonoStereo
                 }
             }
 
+            Output.Update();
             UpdateInputs(MusicMixer, activeSongs);
             UpdateInputs(SoundMixer, activeSoundEffects);
         }
