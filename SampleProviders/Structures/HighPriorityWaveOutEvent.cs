@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Runtime.InteropServices;
+using MonoStereo;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.Wave
@@ -9,7 +10,7 @@ namespace NAudio.Wave
     /// <summary>
     /// Alternative WaveOut class, making use of the Event callback
     /// </summary>
-    public class HighPriorityWaveOutEvent : IWavePlayer, IWavePosition
+    public class HighPriorityWaveOutEvent : IMonoStereoWavePlayer, IWavePosition
     {
         private readonly object waveOutLock;
         private readonly SynchronizationContext syncContext;
@@ -351,6 +352,16 @@ namespace NAudio.Wave
                     syncContext.Post(state => handler(this, new StoppedEventArgs(e)), null);
                 }
             }
+        }
+
+        public static int DeviceCount => WaveInterop.waveOutGetNumDevs();
+
+        public static WaveOutCapabilities GetCapabilities(int deviceNumber)
+        {
+            var caps = new WaveOutCapabilities();
+            var structSize = Marshal.SizeOf(caps);
+            MmException.Try(WaveInterop.waveOutGetDevCaps((IntPtr)deviceNumber, out caps, structSize), "waveOutGetDevCaps");
+            return caps;
         }
     }
 }
