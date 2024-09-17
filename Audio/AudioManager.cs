@@ -17,7 +17,7 @@ namespace MonoStereo
 
         public static bool IsRunning { get; private set; }
 
-        internal static HighPriorityWaveOutEvent Output { get; set; }
+        public static IMonoStereoWavePlayer Output { get; set; }
 
         public static AudioMixer SoundMixer { get; private set; }
 
@@ -26,6 +26,11 @@ namespace MonoStereo
         public static AudioMixer MasterMixer { get; private set; }
 
         internal static List<CachedSoundEffect> CachedSounds { get; private set; } = [];
+
+        /// <summary>
+        /// The time in ms before audio reaches the output device.
+        /// </summary>
+        public static int Latency => Output.DesiredLatency;
 
         /// <summary>
         /// Controls the volume of sound effects
@@ -52,26 +57,6 @@ namespace MonoStereo
         {
             get => MasterMixer.Volume;
             set => MasterMixer.Volume = value;
-        }
-
-        /// <summary>
-        /// The time in ms before audio reaches the output device.<br/>
-        /// To change this, use <see cref="AudioManager.ResetOutput(int?, int?)"/>
-        /// </summary>
-        public static int Latency
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// The target output device.<br/>
-        /// To change this, use <see cref="AudioManager.ResetOutput(int?, int?)"/>
-        /// </summary>
-        public static int DeviceNumber
-        {
-            get;
-            private set;
         }
 
         private static readonly List<Song> activeSongs = [];
@@ -103,16 +88,52 @@ namespace MonoStereo
         }
 
         /// <summary>
-        /// Initializes the MonoStereo Audio Engine
+        /// Initializes the MonoStereo Audio Engine. Note that using this method overload will default to WinMM as an output source.<br/>
+        /// If you would like to supply your own output source, use <see cref="InitializeCustomOutput(IMonoStereoWavePlayer, Func{bool}, float, float, float)"/> instead.
         /// </summary>
         /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
-        /// <param name="latency">The desired latency, in ms.<br/>
-        /// Higher latency will create slightly delayed audio playback, but can help reduce laggy/choppy audio when lots of post-processing or filters are involved.<br/>
-        /// 100ms is typically fine for most purposes.</param>
         /// <param name="masterVolume">The master mixer volume</param>
         /// <param name="musicVolume">The volume for music</param>
         /// <param name="soundEffectVolume">The volume for sound effects</param>
-        public static void Initialize(Func<bool> shouldShutdown, int latency = 150, float masterVolume = 1f, float musicVolume = 1f, float soundEffectVolume = 1f, int deviceNumber = -1)
+        /// <param name="latency">The desired latency, in ms.<br/>
+        /// Higher latency will create slightly delayed audio playback, but can help reduce laggy/choppy audio when lots of post-processing or filters are involved.<br/>
+        /// 100ms-150ms is typically fine for most purposes.</param>
+        /// <param name="deviceNumber">The index of the output device you would like to play to.</param>
+        public static void Initialize(
+            Func<bool> shouldShutdown,
+
+            float masterVolume = 1f,
+            float musicVolume = 1f,
+            float soundEffectVolume = 1f,
+
+            int latency = 150,
+            int deviceNumber = -1)
+        {
+            HighPriorityWaveOutEvent output = new()
+            {
+                DesiredLatency = latency,
+                DeviceNumber = deviceNumber
+            };
+
+            InitializeCustomOutput(output, shouldShutdown, masterVolume, musicVolume, soundEffectVolume);
+        }
+
+        /// <summary>
+        /// Initializes the MonoStereo Audio Engine using a custom <see cref="IMonoStereoWavePlayer"/>. You should only use this if you know what you're doing.<br/>
+        /// Providing a custom output allows you to change how audio is actually played back to the user.
+        /// </summary>
+        /// <param name="customPlayer">The custom <see cref="IMonoStereoWavePlayer"/> the audio engine should output to.</param>
+        /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
+        /// <param name="masterVolume">The master mixer volume</param>
+        /// <param name="musicVolume">The volume for music</param>
+        /// <param name="soundEffectVolume">The volume for sound effects</param>
+        public static void InitializeCustomOutput(
+            IMonoStereoWavePlayer customPlayer,
+            Func<bool> shouldShutdown,
+            
+            float masterVolume = 1f,
+            float musicVolume = 1f,
+            float soundEffectVolume = 1f)
         {
             SoundMixer = new(soundEffectVolume);
             MusicMixer = new(musicVolume);
@@ -133,14 +154,8 @@ namespace MonoStereo
                 song.Stop();
             };
 
-            DeviceNumber = deviceNumber;
-            Latency = latency;
+            Output = customPlayer;
 
-            Output = new()
-            {
-                DeviceNumber = deviceNumber,
-                DesiredLatency = latency
-            };
             Output.Init(MasterMixer);
             Output.Play();
 
@@ -195,36 +210,5 @@ namespace MonoStereo
             UpdateInputs(MusicMixer, activeSongs);
             UpdateInputs(SoundMixer, activeSoundEffects);
         }
-
-        #region Devices
-
-        public static int DeviceCount => WaveInterop.waveOutGetNumDevs();
-
-        public static WaveOutCapabilities GetCapabilities(int deviceNumber)
-        {
-            var caps = new WaveOutCapabilities();
-            var structSize = Marshal.SizeOf(caps);
-            MmException.Try(WaveInterop.waveOutGetDevCaps((IntPtr)deviceNumber, out caps, structSize), "waveOutGetDevCaps");
-            return caps;
-        }
-
-        public static void ResetOutput(int? latency = null, int? deviceNumber = null)
-        {
-            Output.Dispose();
-
-            DeviceNumber = deviceNumber ?? DeviceNumber;
-            Latency = latency ?? Latency;
-
-            Output = new()
-            {
-                DeviceNumber = DeviceNumber,
-                DesiredLatency = Latency
-            };
-            Output.Init(MasterMixer);
-
-            Output.Play();
-        }
-
-        #endregion
     }
 }
