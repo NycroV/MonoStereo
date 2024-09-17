@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Runtime.InteropServices;
 using MonoStereo;
+using MonoStereo.SampleProviders;
+using NAudio.Wave.SampleProviders;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.Wave
@@ -10,7 +12,7 @@ namespace NAudio.Wave
     /// <summary>
     /// Alternative WaveOut class, making use of the Event callback
     /// </summary>
-    public class HighPriorityWaveOutEvent : IMonoStereoWavePlayer, IWavePosition
+    public class HighPriorityWaveOutEvent : IMonoStereoOutput, IWavePosition
     {
         private readonly object waveOutLock;
         private readonly SynchronizationContext syncContext;
@@ -65,11 +67,7 @@ namespace NAudio.Wave
             waveOutLock = new object();
         }
 
-        /// <summary>
-        /// Initialises the WaveOut device
-        /// </summary>
-        /// <param name="waveProvider">WaveProvider to play</param>
-        public void Init(IWaveProvider waveProvider)
+        public void Init(AudioMixer mixer)
         {
             if (playbackState != PlaybackState.Stopped)
             {
@@ -86,8 +84,8 @@ namespace NAudio.Wave
 
             callbackEvent = new AutoResetEvent(false);
 
-            waveStream = waveProvider;
-            int bufferSize = waveProvider.WaveFormat.ConvertLatencyToByteSize((DesiredLatency + NumberOfBuffers - 1) / NumberOfBuffers);
+            waveStream = new SampleToWaveProvider(mixer);
+            int bufferSize = waveStream.WaveFormat.ConvertLatencyToByteSize((DesiredLatency + NumberOfBuffers - 1) / NumberOfBuffers);
 
             MmResult result;
             lock (waveOutLock)
@@ -363,5 +361,8 @@ namespace NAudio.Wave
             MmException.Try(WaveInterop.waveOutGetDevCaps((IntPtr)deviceNumber, out caps, structSize), "waveOutGetDevCaps");
             return caps;
         }
+
+        public void Update()
+        { }
     }
 }
