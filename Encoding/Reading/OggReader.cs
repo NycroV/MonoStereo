@@ -1,5 +1,4 @@
 ﻿using MonoStereo.SampleProviders;
-using NAudio.Vorbis;
 using System;
 using System.Collections.Generic;
 using Wave = NAudio.Wave;

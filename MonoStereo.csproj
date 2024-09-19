@@ -31,11 +31,9 @@
     <Content Include="docs\Icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Vorbis\NVorbis\NVorbis.csproj" />
-    <None Include="Vorbis\OggVorbisEncoder\OggVorbisEncoder.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NVorbis" Version="0.10.5" />
+    <PackageReference Include="YellowDogMan.OggVorbisEncoder" Version="1.2.2-ydm-0.1.1" />
     <PackageReference Include="z440.atl.core" Version="6.4.0" />
   </ItemGroup>
   <ItemGroup>
