@@ -5,18 +5,22 @@ using System.Runtime.InteropServices;
 using MonoStereo;
 using MonoStereo.SampleProviders;
 using NAudio.Wave.SampleProviders;
+using NAudio;
+using NAudio.Wave;
+
 
 // ReSharper disable once CheckNamespace
-namespace NAudio.Wave
+namespace MonoStereo.Outputs
 {
     /// <summary>
     /// Alternative WaveOut class, making use of the Event callback
     /// </summary>
-    public class HighPriorityWaveOutEvent : IMonoStereoOutput, IWavePosition
+    public class HighPriorityWaveOutEvent : IMonoStereoOutput
     {
-        private readonly object waveOutLock;
+        private readonly object waveOutLock = new();
         private readonly SynchronizationContext syncContext;
-        private IntPtr hWaveOut; // WaveOut handle
+
+        private nint hWaveOut; // WaveOut handle
         private WaveOutBuffer[] buffers;
         private IWaveProvider waveStream;
         private volatile PlaybackState playbackState;
@@ -45,26 +49,24 @@ namespace NAudio.Wave
         /// This must be between -1 and <see>DeviceCount</see> - 1.
         /// -1 means stick to default device even default device is changed
         /// </summary>
-        public int DeviceNumber { get; set; } = -1;
+        public int DeviceNumber { get; set; }
 
         /// <summary>
         /// Opens a WaveOut device
         /// </summary>
-        public HighPriorityWaveOutEvent()
+        public HighPriorityWaveOutEvent(int desiredLatency = 150, int deviceNumber = -1, int numberOfBuffers = 8)
         {
             syncContext = SynchronizationContext.Current;
             if (syncContext != null &&
-                ((syncContext.GetType().Name == "LegacyAspNetSynchronizationContext") ||
-                (syncContext.GetType().Name == "AspNetSynchronizationContext")))
+                (syncContext.GetType().Name == "LegacyAspNetSynchronizationContext" ||
+                syncContext.GetType().Name == "AspNetSynchronizationContext"))
             {
                 syncContext = null;
             }
 
-            // set default values up
-            DesiredLatency = 300;
-            NumberOfBuffers = 2;
-
-            waveOutLock = new object();
+            DesiredLatency = desiredLatency;
+            NumberOfBuffers = numberOfBuffers;
+            DeviceNumber = deviceNumber;
         }
 
         public void Init(AudioMixer mixer)
@@ -73,7 +75,7 @@ namespace NAudio.Wave
             {
                 throw new InvalidOperationException("Can't re-initialize during playback");
             }
-            if (hWaveOut != IntPtr.Zero)
+            if (hWaveOut != nint.Zero)
             {
                 // normally we don't allow calling Init twice, but as experiment, see if we can clean up and go again
                 // try to allow reuse of this waveOut device
@@ -90,7 +92,7 @@ namespace NAudio.Wave
             MmResult result;
             lock (waveOutLock)
             {
-                result = WaveInterop.waveOutOpenWindow(out hWaveOut, (IntPtr)DeviceNumber, waveStream.WaveFormat, callbackEvent.SafeWaitHandle.DangerousGetHandle(), IntPtr.Zero, WaveInterop.WaveInOutOpenFlags.CallbackEvent);
+                result = WaveInterop.waveOutOpenWindow(out hWaveOut, DeviceNumber, waveStream.WaveFormat, callbackEvent.SafeWaitHandle.DangerousGetHandle(), nint.Zero, WaveInterop.WaveInOutOpenFlags.CallbackEvent);
             }
             MmException.Try(result, "waveOutOpen");
 
@@ -115,6 +117,7 @@ namespace NAudio.Wave
             {
                 playbackState = PlaybackState.Playing;
                 callbackEvent.Set(); // give the thread a kick
+
                 Thread audioThread = new(PlaybackThread) { Priority = ThreadPriority.Highest };
                 audioThread.Start();
             }
@@ -155,7 +158,6 @@ namespace NAudio.Wave
                         Debug.WriteLine("WARNING: WaveOutEvent callback event timeout");
                     }
                 }
-
 
                 // requeue any buffers returned to us
                 if (playbackState == PlaybackState.Playing)
@@ -305,10 +307,10 @@ namespace NAudio.Wave
             }
             lock (waveOutLock)
             {
-                if (hWaveOut != IntPtr.Zero)
+                if (hWaveOut != nint.Zero)
                 {
                     WaveInterop.waveOutClose(hWaveOut);
-                    hWaveOut = IntPtr.Zero;
+                    hWaveOut = nint.Zero;
                 }
             }
         }
@@ -358,7 +360,7 @@ namespace NAudio.Wave
         {
             var caps = new WaveOutCapabilities();
             var structSize = Marshal.SizeOf(caps);
-            MmException.Try(WaveInterop.waveOutGetDevCaps((IntPtr)deviceNumber, out caps, structSize), "waveOutGetDevCaps");
+            MmException.Try(WaveInterop.waveOutGetDevCaps(deviceNumber, out caps, structSize), "waveOutGetDevCaps");
             return caps;
         }
 

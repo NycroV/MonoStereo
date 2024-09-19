@@ -1,12 +1,11 @@
 ﻿using MonoStereo.SampleProviders;
-using NAudio;
+using MonoStereo.Outputs;
 using NAudio.Wave;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace MonoStereo
@@ -112,7 +111,8 @@ namespace MonoStereo
             HighPriorityWaveOutEvent output = new()
             {
                 DesiredLatency = latency,
-                DeviceNumber = deviceNumber
+                DeviceNumber = deviceNumber,
+                NumberOfBuffers = 8
             };
 
             InitializeCustomOutput(output, shouldShutdown, masterVolume, musicVolume, soundEffectVolume);
