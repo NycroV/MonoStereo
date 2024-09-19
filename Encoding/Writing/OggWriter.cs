@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿extern alias XNA;
+using XNA::Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content.Pipeline;
 using MonoStereo.Pipeline;
 using OggVorbisEncoder;

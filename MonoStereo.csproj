@@ -17,11 +17,12 @@
     <PackageTags>MonoGame;Audio;Audio Engine</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="docs\Icon.ico" />
+    <Compile Remove="Vorbis\**" />
+    <EmbeddedResource Remove="Vorbis\**" />
+    <None Remove="Vorbis\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Vorbis\NVorbis\NVorbis.csproj" />
-    <None Include="Vorbis\OggVorbisEncoder\OggVorbisEncoder.csproj" />
+    <Content Include="docs\Icon.ico" />
   </ItemGroup>
   <ItemGroup>
 	<PackageReference Include="MonoGame.Framework.Content.Pipeline" Version="3.8.1.303">
@@ -29,9 +30,12 @@
 	</PackageReference>
 	<PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303">
 		<PrivateAssets>All</PrivateAssets>
+		<Aliases>XNA</Aliases>
 	</PackageReference>
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="NVorbis" Version="0.10.5" />
+    <PackageReference Include="NVorbis" Version="0.10.5">
+      <Aliases></Aliases>
+    </PackageReference>
     <PackageReference Include="YellowDogMan.OggVorbisEncoder" Version="1.2.2-ydm-0.1.1" />
     <PackageReference Include="z440.atl.core" Version="6.4.0" />
   </ItemGroup>
