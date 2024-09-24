@@ -14,7 +14,7 @@ namespace MonoStereo.SampleProviders
         // this is how the volume is controlled, as well as the chain of filter reading is assembled.
         //
         // This filter is generally not visible to end users, as removing it would cause issues.
-        public float Volume
+        public virtual float Volume
         {
             get => filterBase.Volume;
             set => filterBase.Volume = value;

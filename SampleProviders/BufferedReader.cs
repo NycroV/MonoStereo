@@ -14,7 +14,7 @@ namespace MonoStereo.SampleProviders
         private int bufferLength;
         private bool sourceSamplesAvailable = true;
 
-        private readonly object clearBufferLock = new();
+        private readonly QueuedLock clearBufferLock = new();
         private readonly ConcurrentQueue<float> sampleBuffer = [];
         private float[] inBuffer;
         public int BufferedSamples { get => sampleBuffer.Count; }
@@ -42,10 +42,11 @@ namespace MonoStereo.SampleProviders
 
             if (samplesRequested > 0)
             {
-                inBuffer = BufferHelpers.Ensure(inBuffer, samplesRequested);
-
-                lock (clearBufferLock)
+                try
                 {
+                    clearBufferLock.Enter();
+
+                    inBuffer = BufferHelpers.Ensure(inBuffer, samplesRequested);
                     int read = sampleProvider.Read(inBuffer, 0, samplesRequested);
 
                     if (read > 0)
@@ -57,6 +58,10 @@ namespace MonoStereo.SampleProviders
 
                     else
                         sourceSamplesAvailable = false;
+                }
+                finally
+                {
+                    clearBufferLock.Exit();
                 }
             }
         }
@@ -91,9 +96,14 @@ namespace MonoStereo.SampleProviders
 
         public void ClearBuffer()
         {
-            lock (clearBufferLock)
+            try
             {
+                clearBufferLock.Enter();
                 sampleBuffer.Clear();
+            }
+            finally
+            {
+                clearBufferLock.Exit();
             }
         }
 
