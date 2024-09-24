@@ -14,11 +14,11 @@ namespace MonoStereo
         public SoundEffect(CachedSoundEffect cachedSound) : this(new CachedSoundEffectReader(cachedSound))
         { }
 
-        public ISoundEffectSource Source { get; set; } = source;
+        public virtual ISoundEffectSource Source { get; set; } = source;
 
         public override WaveFormat WaveFormat { get => Source.WaveFormat; }
 
-        public Dictionary<string, string> Comments { get => Source.Comments; }
+        public virtual Dictionary<string, string> Comments { get => Source.Comments; }
 
         public override PlaybackState PlaybackState
         {
@@ -26,15 +26,15 @@ namespace MonoStereo
             set => Source.PlaybackState = value;
         }
 
-        public long Length => Source.Length;
+        public virtual long Length => Source.Length;
 
-        public long Position
+        public virtual long Position
         {
             get => Source.Position;
             set => Source.Position = value;
         }
 
-        public bool IsLooped
+        public virtual bool IsLooped
         {
             get => Source.IsLooped;
             set => Source.IsLooped = value;

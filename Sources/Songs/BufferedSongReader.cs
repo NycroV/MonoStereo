@@ -9,6 +9,7 @@ namespace MonoStereo.AudioSources.Songs
     {
         private static readonly List<BufferedSongReader> bufferedReaders = [];
         private static Thread readerThread;
+        private readonly QueuedLock readerLock = new();
 
         public BufferedSongReader(ISongSource source, float secondsToHold = 5f)
         {
@@ -63,9 +64,19 @@ namespace MonoStereo.AudioSources.Songs
             get => cachedPosition;
             set
             {
-                Source.Position = value;
-                cachedPosition = value;
-                Reader.ClearBuffer();
+                try
+                {
+                    readerLock.Enter();
+
+                    Source.Position = value;
+                    Reader.ClearBuffer();
+                    cachedPosition = value;
+                }
+
+                finally
+                {
+                    readerLock.Exit();
+                }
             }
         }
 
@@ -100,8 +111,18 @@ namespace MonoStereo.AudioSources.Songs
                     continue;
                 }
 
-                if (reader?.PlaybackState == PlaybackState.Playing)
-                    reader?.Reader?.ReadAhead();
+                if (reader.PlaybackState == PlaybackState.Playing)
+                {
+                    try
+                    {
+                        reader.readerLock.Enter();
+                        reader.Reader.ReadAhead();
+                    }
+                    finally
+                    {
+                        reader.readerLock.Exit();
+                    }
+                }
 
                 if (i == bufferedReaders.Count - 1)
                     i = -1;
