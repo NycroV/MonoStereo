@@ -68,7 +68,6 @@ namespace MonoStereo.SampleProviders
 
         /// <summary>
         /// Reads from this SampleProvider
-        /// Will always return count floats, since we will zero-fill the buffer if not enough available
         /// </summary>
         public int Read(float[] buffer, int offset, int count)
         {
