@@ -68,8 +68,8 @@ namespace MonoStereo.AudioSources.Songs
                 {
                     readerLock.Enter();
 
-                    Source.Position = value;
                     Reader.ClearBuffer();
+                    Source.Position = value;
                     cachedPosition = value;
                 }
 
