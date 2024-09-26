@@ -1,22 +1,15 @@
-﻿using NAudio.Dsp;
+﻿using MonoStereo.SampleProviders;
+using NAudio.Dsp;
+using System.Collections.Generic;
 
 namespace MonoStereo.Filters
 {
-    public class SpeedChangeFilter : AudioFilter
+    public class SpeedChangeFilter(float speed = 1f) : AudioFilter
     {
-        public SpeedChangeFilter(float speed = 1f)
-        {
-            _speed = speed;
-            resampler.SetMode(true, 2, false);
-            resampler.SetFilterParms();
-            resampler.SetFeedMode(false); // output driven
-            resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
-        }
-
         public override FilterPriority Priority => FilterPriority.ApplyLast;
-        private readonly WdlResampler resampler = new();
+        private readonly Dictionary<MonoStereoProvider, WdlResampler> resamplers = [];
 
-        private float _speed;
+        private float _speed = speed;
         public float Speed
         {
             get
@@ -29,8 +22,29 @@ namespace MonoStereo.Filters
                     return;
 
                 _speed = value;
-                resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / _speed);
+
+                foreach (var sampler in resamplers)
+                    sampler.Value.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / _speed);
             }
+        }
+
+        public override void Apply(MonoStereoProvider provider)
+        {
+            if (resamplers.ContainsKey(provider))
+                return;
+
+            var resampler = new WdlResampler();
+            resampler.SetMode(true, 2, false);
+            resampler.SetFilterParms();
+            resampler.SetFeedMode(false); // output driven
+            resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / _speed);
+
+            resamplers.Add(provider, resampler);
+        }
+
+        public override void Unapply(MonoStereoProvider provider)
+        {
+            resamplers.Remove(provider);
         }
 
         public override int ModifyRead(float[] buffer, int offset, int count)
@@ -46,13 +60,22 @@ namespace MonoStereo.Filters
                 return count;
             }
 
+            if (!resamplers.TryGetValue(Source, out var resampler))
+                return base.ModifyRead(buffer, offset, count);
+
             int framesRequested = count / AudioStandards.ChannelCount;
             int inNeeded = resampler.ResamplePrepare(framesRequested, AudioStandards.ChannelCount, out float[] inBuffer, out int inBufferOffset);
 
-            int inAvailable = Provider.Read(inBuffer, inBufferOffset, inNeeded * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
+            int inAvailable = base.ModifyRead(inBuffer, inBufferOffset, inNeeded * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
             int outAvailable = resampler.ResampleOut(buffer, offset, inAvailable, framesRequested, AudioStandards.ChannelCount);
 
             return outAvailable * AudioStandards.ChannelCount;
+        }
+
+        public override void Dispose()
+        {
+            resamplers.Clear();
+            base.Dispose();
         }
     }
 }

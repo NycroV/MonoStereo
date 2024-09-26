@@ -5,6 +5,13 @@ using System.Threading;
 
 namespace MonoStereo.AudioSources.Songs
 {
+    /// <summary>
+    /// Reads a song a configurable amount of seconds ahead of time into memory to offload expensive IO operations to a background thread.<br/>
+    /// <br/>
+    /// IMPORTANT: The <see cref="Position"/> property is NOT guaranteed to be accurate to the position of the underlying reader, as this encapsulator reads ahead of time.<br/>
+    /// It should be accurate before any looping occurs, but after that it will display as if it is one continuous reader, not a looped read.<br/>
+    /// If you need this value to be accurate, it is recommended to implement some of your own logic to guarantee accuracy.
+    /// </summary>
     public class BufferedSongReader : ISongSource
     {
         #region Buffer Assets
