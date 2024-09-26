@@ -10,15 +10,25 @@ namespace MonoStereo.AudioSources.Songs
     // MonoStereo song files are compiled as OggFiles by default.
     public class SongReader : ISongSource
     {
+        #region Metadata
+
         public string FileName { get; private set; }
-
-        public OggReader OggReader { get; private set; }
-
-        public Dictionary<string, string> Comments { get; private set; }
 
         public WaveFormat WaveFormat { get => OggReader.WaveFormat; }
 
+        public Dictionary<string, string> Comments { get; private set; }
+
+        #endregion
+
+        #region Playback
+
+        public OggReader OggReader { get; private set; }
+
         public PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
+
+        #endregion
+
+        #region Play region
 
         public long Length => OggReader.Length;
 
@@ -37,6 +47,8 @@ namespace MonoStereo.AudioSources.Songs
         public long LoopEnd { get; private set; } = -1;
 
         public bool IsLooped { get; set; } = false;
+
+        #endregion
 
         public SongReader(string fileName)
         {

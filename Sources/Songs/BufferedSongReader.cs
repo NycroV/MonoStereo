@@ -7,22 +7,24 @@ namespace MonoStereo.AudioSources.Songs
 {
     public class BufferedSongReader : ISongSource
     {
+        #region Buffer Assets
+
         private static readonly List<BufferedSongReader> bufferedReaders = [];
         private static Thread readerThread;
         private readonly QueuedLock readerLock = new();
+
+        #endregion
 
         public BufferedSongReader(ISongSource source, float secondsToHold = 5f)
         {
             Source = source;
             Reader = new(source, secondsToHold);
 
+            // If the thread that cached buffered song readers
+            // ahead of time has yet to be started, start it.
             if (readerThread is null)
             {
-                readerThread = new(CacheBuffers)
-                {
-                    Priority = ThreadPriority.AboveNormal
-                };
-
+                readerThread = new(CacheBuffers) { Priority = ThreadPriority.AboveNormal };
                 readerThread.Start();
             }
 
@@ -30,9 +32,13 @@ namespace MonoStereo.AudioSources.Songs
             bufferedReaders.Add(this);
         }
 
+        #region Playback
+
         public readonly ISongSource Source;
 
         private readonly BufferedReader Reader;
+
+        public WaveFormat WaveFormat => Source.WaveFormat;
 
         public PlaybackState PlaybackState
         {
@@ -41,6 +47,10 @@ namespace MonoStereo.AudioSources.Songs
         }
 
         public Dictionary<string, string> Comments => Source.Comments;
+
+        #endregion
+
+        #region Play region
 
         public long Length => Source.Length;
 
@@ -80,7 +90,7 @@ namespace MonoStereo.AudioSources.Songs
             }
         }
 
-        public WaveFormat WaveFormat => Source.WaveFormat;
+        #endregion
 
         public void Close()
         {
@@ -104,6 +114,8 @@ namespace MonoStereo.AudioSources.Songs
 
                 var reader = bufferedReaders[i];
 
+                // Remove buffers that have been closed
+                // If a buffer is null, it may not be finished creating yet. Default to false to account for this case.
                 if (reader?.Reader?.Disposing ?? false)
                 {
                     bufferedReaders.RemoveAt(i);
@@ -111,7 +123,7 @@ namespace MonoStereo.AudioSources.Songs
                     continue;
                 }
 
-                if (reader.PlaybackState == PlaybackState.Playing)
+                if (reader?.PlaybackState == PlaybackState.Playing)
                 {
                     try
                     {

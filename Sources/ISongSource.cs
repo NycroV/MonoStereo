@@ -10,8 +10,6 @@ namespace MonoStereo.AudioSources
 
         public Dictionary<string, string> Comments { get; }
 
-        public long Length { get; }
-
         public bool IsLooped { get; set; }
 
         public virtual void OnPlay() { }

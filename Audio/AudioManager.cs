@@ -105,14 +105,15 @@ namespace MonoStereo
             float musicVolume = 1f,
             float soundEffectVolume = 1f,
 
-            int latency = 150,
-            int deviceNumber = -1)
+            int latency = 75,
+            int deviceNumber = -1,
+            int bufferCount = 8)
         {
             HighPriorityWaveOutEvent output = new()
             {
                 DesiredLatency = latency,
                 DeviceNumber = deviceNumber,
-                NumberOfBuffers = 8
+                NumberOfBuffers = bufferCount
             };
 
             InitializeCustomOutput(output, shouldShutdown, masterVolume, musicVolume, soundEffectVolume);

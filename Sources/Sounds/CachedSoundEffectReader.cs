@@ -7,15 +7,25 @@ namespace MonoStereo.AudioSources.Sounds
 {
     public class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ISoundEffectSource
     {
-        public string FileName { get => CachedSoundEffect.FileName; }
+        #region Metadata
 
-        public CachedSoundEffect CachedSoundEffect { get; private set; } = cachedSound;
+        public string FileName { get => CachedSoundEffect.FileName; }
 
         public WaveFormat WaveFormat => CachedSoundEffect.WaveFormat;
 
         public Dictionary<string, string> Comments { get; } = cachedSound.Comments.ToDictionary();
 
+        #endregion
+
+        #region Playback fields
+
+        public CachedSoundEffect CachedSoundEffect { get; private set; } = cachedSound;
+
         public PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
+
+        #endregion
+
+        #region Play region
 
         public long Length => CachedSoundEffect.AudioData.Length;
 
@@ -26,6 +36,8 @@ namespace MonoStereo.AudioSources.Sounds
         public long LoopEnd { get => CachedSoundEffect.LoopEnd; }
 
         public bool IsLooped { get; set; } = false;
+
+        #endregion
 
         public int Read(float[] buffer, int offset, int count)
         {
