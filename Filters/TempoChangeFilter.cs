@@ -1,4 +1,6 @@
-﻿using NAudio.Dsp;
+﻿using MonoStereo.SampleProviders;
+using NAudio.Dsp;
+using System.Collections.Generic;
 
 namespace MonoStereo.Filters
 {
@@ -6,14 +8,11 @@ namespace MonoStereo.Filters
     {
         public TempoChangeFilter(float tempo = 1f)
         {
-            resampler.SetMode(true, 2, false);
-            resampler.SetFilterParms();
-            resampler.SetFeedMode(false); // output driven
             Tempo = tempo;
         }
 
         public override FilterPriority Priority => FilterPriority.ApplyLast;
-        private readonly WdlResampler resampler = new();
+        private readonly Dictionary<MonoStereoProvider, WdlResampler> resamplers = [];
 
         public float Tempo
         {
@@ -29,7 +28,9 @@ namespace MonoStereo.Filters
                 lock (pitchLock)
                 {
                     speed = value;
-                    resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
+
+                    foreach (var sampler in resamplers)
+                        sampler.Value.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
 
                     if (value != 0)
                         pitch = 1f / value;
@@ -50,6 +51,26 @@ namespace MonoStereo.Filters
         private readonly SmbPitchShifter shifterLeft = new();
         private readonly SmbPitchShifter shifterRight = new();
 
+        public override void Apply(MonoStereoProvider provider)
+        {
+            if (resamplers.ContainsKey(provider))
+                return;
+
+            var resampler = new WdlResampler();
+            resampler.SetMode(true, 2, false);
+            resampler.SetFilterParms();
+            resampler.SetFeedMode(false); // output driven
+
+            // Doing these in this order ensures speed is properly set with regard to race conditions
+            resamplers.Add(provider, resampler);
+            resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
+        }
+
+        public override void Unapply(MonoStereoProvider provider)
+        {
+            resamplers.Remove(provider);
+        }
+
         public override int ModifyRead(float[] buffer, int offset, int count)
         {
             lock (pitchLock)
@@ -69,10 +90,13 @@ namespace MonoStereo.Filters
                 return count;
             }
 
+            if (!resamplers.TryGetValue(Source, out var resampler))
+                return base.ModifyRead(buffer, offset, count);
+
             int framesRequested = count / AudioStandards.ChannelCount;
             int inNeeded = resampler.ResamplePrepare(framesRequested, AudioStandards.ChannelCount, out float[] inBuffer, out int inBufferOffset);
 
-            int inAvailable = Provider.Read(inBuffer, inBufferOffset, inNeeded * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
+            int inAvailable = base.ModifyRead(inBuffer, inBufferOffset, inNeeded * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
             int outAvailable = resampler.ResampleOut(buffer, offset, inAvailable, framesRequested, AudioStandards.ChannelCount);
 
             return outAvailable * AudioStandards.ChannelCount;

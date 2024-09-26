@@ -8,13 +8,12 @@ namespace MonoStereo.SampleProviders
     public class BufferedReader : ISampleProvider, IDisposable
     {
         public WaveFormat WaveFormat { get; }
-        private readonly ISampleProvider sampleProvider;
+        public readonly ISampleProvider sampleProvider;
 
         public float SecondsToHold
         {
             get => bufferLength / WaveFormat.SampleRate / WaveFormat.Channels;
             set => bufferLength = (int)(WaveFormat.SampleRate * WaveFormat.Channels * value);
-        
         }
 
         private float[] inBuffer;
@@ -40,19 +39,19 @@ namespace MonoStereo.SampleProviders
 
         public void ReadAhead()
         {
-            if (Disposing)
-                return;
-
-            int samplesRequested = bufferLength - sampleBuffer.Count;
-            while (samplesRequested % WaveFormat.Channels != 0)
-                samplesRequested--;
-
-            if (samplesRequested > 0)
+            try
             {
-                try
-                {
-                    clearBufferLock.Enter();
+                clearBufferLock.Enter();
 
+                if (Disposing)
+                    return;
+
+                int samplesRequested = bufferLength - sampleBuffer.Count;
+                while (samplesRequested % WaveFormat.Channels != 0)
+                    samplesRequested--;
+
+                if (samplesRequested > 0)
+                {
                     inBuffer = BufferHelpers.Ensure(inBuffer, samplesRequested);
                     int read = sampleProvider.Read(inBuffer, 0, samplesRequested);
 
@@ -66,10 +65,10 @@ namespace MonoStereo.SampleProviders
                     else
                         sourceSamplesAvailable = false;
                 }
-                finally
-                {
-                    clearBufferLock.Exit();
-                }
+            }
+            finally
+            {
+                clearBufferLock.Exit();
             }
         }
 
@@ -113,6 +112,7 @@ namespace MonoStereo.SampleProviders
         public void Dispose()
         {
             Disposing = true;
+            ClearBuffer();
         }
     }
 }

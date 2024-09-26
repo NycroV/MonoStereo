@@ -36,25 +36,7 @@ namespace MonoStereo.Filters
                     buffer[offset + i] *= volume;
             }
 
-            if (pan != 0f)
-            {
-                float normPan = (-pan + 1f) / 2f;
-                float leftChannel = (float)Math.Sqrt(normPan);
-                float rightChannel = (float)Math.Sqrt(1 - normPan);
-
-                for (int i = 0; i < samplesRead; i++)
-                {
-                    if (i % 2 == 0)
-                    {
-                        buffer[offset + i] *= leftChannel;
-                    }
-
-                    else
-                    {
-                        buffer[offset + i] *= rightChannel;
-                    }
-                }
-            }
+           PanFilter.Pan(buffer, offset, samplesRead, pan);
         }
     }
 }
