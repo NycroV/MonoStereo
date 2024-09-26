@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MonoStereo
 {
-    public class SoundEffect : MonoStereoProvider, ISeekableSampleProvider
+    public class SoundEffect(ISoundEffectSource source) : MonoStereoProvider, ISeekableSampleProvider
     {
         #region Creation
 
@@ -15,11 +15,6 @@ namespace MonoStereo
         public static SoundEffect Create(CachedSoundEffect cachedSound) { return new SoundEffect(new CachedSoundEffectReader(cachedSound)); }
 
         #endregion
-
-        private SoundEffect(ISoundEffectSource source)
-        {
-            Source = source;
-        }
 
         #region Metadata
 
@@ -31,7 +26,7 @@ namespace MonoStereo
 
         #region Playback
 
-        public virtual ISoundEffectSource Source { get; set; }
+        public virtual ISoundEffectSource Source { get; set; } = source;
 
         public override PlaybackState PlaybackState
         {
