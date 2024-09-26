@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MonoStereo
 {
-    public class Song : MonoStereoProvider, ISeekableSampleProvider
+    public class Song(ISongSource source) : MonoStereoProvider, ISeekableSampleProvider
     {
         #region Creation
 
@@ -34,11 +34,6 @@ namespace MonoStereo
 
         #endregion
 
-        private Song(ISongSource source)
-        {
-            Source = source;
-        }
-
         #region Metadata
 
         public override WaveFormat WaveFormat { get => Source.WaveFormat; }
@@ -49,7 +44,7 @@ namespace MonoStereo
 
         #region Playback
 
-        public virtual ISongSource Source { get; set; }
+        public virtual ISongSource Source { get; set; } = source;
 
         public override PlaybackState PlaybackState
         {

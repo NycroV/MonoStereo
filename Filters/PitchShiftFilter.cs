@@ -25,7 +25,7 @@ namespace MonoStereo.Filters
 
         public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShift(pitch, shifterLeft, shifterRight, buffer, offset, samplesRead);
 
-        internal static void PitchShift(float pitch, SmbPitchShifter shifterLeft, SmbPitchShifter shifterRight, float[] buffer, int offset, int samplesRead)
+        public static void PitchShift(float pitch, SmbPitchShifter shifterLeft, SmbPitchShifter shifterRight, float[] buffer, int offset, int samplesRead)
         {
             if (pitch == 1f)
                 return;
