@@ -10,19 +10,26 @@ namespace MonoStereo.SampleProviders
         public WaveFormat WaveFormat { get; }
         private readonly ISampleProvider sampleProvider;
 
-        public float SecondsToHold { get => bufferLength / WaveFormat.SampleRate / WaveFormat.Channels; set => bufferLength = (int)(WaveFormat.SampleRate * WaveFormat.Channels * value); }
+        public float SecondsToHold
+        {
+            get => bufferLength / WaveFormat.SampleRate / WaveFormat.Channels;
+            set => bufferLength = (int)(WaveFormat.SampleRate * WaveFormat.Channels * value);
+        
+        }
+
+        private float[] inBuffer;
         private int bufferLength;
+
         private bool sourceSamplesAvailable = true;
+        public int BufferedSamples { get => sampleBuffer.Count; }
 
         private readonly QueuedLock clearBufferLock = new();
         private readonly ConcurrentQueue<float> sampleBuffer = [];
-        private float[] inBuffer;
-        public int BufferedSamples { get => sampleBuffer.Count; }
         
         public bool Disposing = false;
 
         /// <summary>
-        /// Creates a new buffered WaveProvider
+        /// Creates a new buffered sample provider
         /// </summary>
         public BufferedReader(ISampleProvider source, float secondsToHold)
         {
@@ -66,9 +73,6 @@ namespace MonoStereo.SampleProviders
             }
         }
 
-        /// <summary>
-        /// Reads from this SampleProvider
-        /// </summary>
         public int Read(float[] buffer, int offset, int count)
         {
             int read = 0;

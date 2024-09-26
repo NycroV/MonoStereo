@@ -6,25 +6,42 @@ using System.Collections.Generic;
 
 namespace MonoStereo
 {
-    public class SoundEffect(ISoundEffectSource source) : MonoStereoProvider, ISeekableSampleProvider
+    public class SoundEffect : MonoStereoProvider, ISeekableSampleProvider
     {
-        public SoundEffect(string fileName) : this(new SoundEffectReader(fileName))
-        { }
+        #region Creation
 
-        public SoundEffect(CachedSoundEffect cachedSound) : this(new CachedSoundEffectReader(cachedSound))
-        { }
+        public static SoundEffect Create(string fileName) { return new SoundEffect(new SoundEffectReader(fileName)); }
 
-        public virtual ISoundEffectSource Source { get; set; } = source;
+        public static SoundEffect Create(CachedSoundEffect cachedSound) { return new SoundEffect(new CachedSoundEffectReader(cachedSound)); }
+
+        #endregion
+
+        private SoundEffect(ISoundEffectSource source)
+        {
+            Source = source;
+        }
+
+        #region Metadata
 
         public override WaveFormat WaveFormat { get => Source.WaveFormat; }
 
         public virtual Dictionary<string, string> Comments { get => Source.Comments; }
+
+        #endregion
+
+        #region Playback
+
+        public virtual ISoundEffectSource Source { get; set; }
 
         public override PlaybackState PlaybackState
         {
             get => Source.PlaybackState;
             set => Source.PlaybackState = value;
         }
+
+        #endregion
+
+        #region Play Region
 
         public virtual long Length => Source.Length;
 
@@ -39,6 +56,8 @@ namespace MonoStereo
             get => Source.IsLooped;
             set => Source.IsLooped = value;
         }
+
+        #endregion
 
         public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);
 

@@ -15,7 +15,7 @@ namespace MonoStereo.Outputs
     /// <summary>
     /// Alternative WaveOut class, making use of the Event callback
     /// </summary>
-    public class HighPriorityWaveOutEvent : IMonoStereoOutput
+    public class HighPriorityWaveOutEvent : IMonoStereoOutput, IWavePosition
     {
         private readonly object waveOutLock = new();
         private readonly SynchronizationContext syncContext;

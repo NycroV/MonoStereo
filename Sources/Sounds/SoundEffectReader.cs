@@ -11,15 +11,25 @@ namespace MonoStereo.AudioSources.Sounds
     // with support for automatic looping.
     public class SoundEffectReader : ISoundEffectSource
     {
-        public string FileName { get; private set; }
+        #region Metadata
 
-        public SoundEffectFileReader WavReader { get; private set; }
+        public string FileName { get; private set; }
 
         public Dictionary<string, string> Comments { get; }
 
         public WaveFormat WaveFormat { get => WavReader.WaveFormat; }
 
+        #endregion
+
+        #region Playback
+
+        public SoundEffectFileReader WavReader { get; private set; }
+
         public PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
+
+        #endregion
+
+        #region Play region
 
         public long Length => WavReader.Length;
 
@@ -34,6 +44,8 @@ namespace MonoStereo.AudioSources.Sounds
         public long LoopEnd { get; private set; } = -1;
 
         public bool IsLooped { get; set; } = false;
+
+        #endregion
 
         public SoundEffectReader(string fileName)
         {

@@ -97,11 +97,11 @@ namespace MonoStereo
             AudioManager.CachedSounds.Add(this);
         }
 
-        public SoundEffect GetInstance() => new(this);
+        public SoundEffect GetInstance() => SoundEffect.Create(this);
 
         public SoundEffect PlayInstance()
         {
-            SoundEffect instance = new(this);
+            SoundEffect instance = SoundEffect.Create(this);
             instance.Play();
             return instance;
         }
@@ -113,6 +113,7 @@ namespace MonoStereo
             FileName = null;
             WaveFormat = null;
             AudioData = null;
+            Comments = null;
 
             GC.SuppressFinalize(this);
         }
