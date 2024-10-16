@@ -39,10 +39,8 @@ namespace MonoStereo.SampleProviders
 
         public void ReadAhead()
         {
-            try
+            clearBufferLock.Execute(() =>
             {
-                clearBufferLock.Enter();
-
                 if (Disposing)
                     return;
 
@@ -65,11 +63,7 @@ namespace MonoStereo.SampleProviders
                     else
                         sourceSamplesAvailable = false;
                 }
-            }
-            finally
-            {
-                clearBufferLock.Exit();
-            }
+            });
         }
 
         public int Read(float[] buffer, int offset, int count)
@@ -96,18 +90,7 @@ namespace MonoStereo.SampleProviders
             return read;
         }
 
-        public void ClearBuffer()
-        {
-            try
-            {
-                clearBufferLock.Enter();
-                sampleBuffer.Clear();
-            }
-            finally
-            {
-                clearBufferLock.Exit();
-            }
-        }
+        public void ClearBuffer() => clearBufferLock.Execute(sampleBuffer.Clear);
 
         public void Dispose()
         {

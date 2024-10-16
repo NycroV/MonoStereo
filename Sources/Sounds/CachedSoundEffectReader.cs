@@ -1,11 +1,12 @@
-﻿using NAudio.Wave;
+﻿using MonoStereo.SampleProviders;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace MonoStereo.AudioSources.Sounds
 {
-    public class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ISoundEffectSource
+    public class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ISeekableSoundEffectSource, ILoopTags
     {
         #region Metadata
 

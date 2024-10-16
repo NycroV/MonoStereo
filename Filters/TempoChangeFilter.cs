@@ -13,6 +13,7 @@ namespace MonoStereo.Filters
 
         public override FilterPriority Priority => FilterPriority.ApplyLast;
         private readonly Dictionary<MonoStereoProvider, WdlResampler> resamplers = [];
+        private readonly QueuedLock pitchLock = new();
 
         public float Tempo
         {
@@ -25,7 +26,7 @@ namespace MonoStereo.Filters
                 if (speed == value)
                     return;
 
-                lock (pitchLock)
+                pitchLock.Execute(() =>
                 {
                     speed = value;
 
@@ -37,13 +38,12 @@ namespace MonoStereo.Filters
 
                     else
                         pitch = 1f;
-                }
+                });
             }
         }
 
         private float speed = float.NaN;
         private float pitch = float.NaN;
-        private readonly object pitchLock = new();
 
         private float speedCache = float.NaN;
         private float pitchCache = float.NaN;
@@ -53,17 +53,16 @@ namespace MonoStereo.Filters
 
         public override void Apply(MonoStereoProvider provider)
         {
-            if (resamplers.ContainsKey(provider))
-                return;
-
             var resampler = new WdlResampler();
             resampler.SetMode(true, 2, false);
             resampler.SetFilterParms();
             resampler.SetFeedMode(false); // output driven
 
-            // Doing these in this order ensures speed is properly set with regard to race conditions
-            resamplers.Add(provider, resampler);
-            resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
+            pitchLock.Execute(() =>
+            {
+                resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
+                resamplers.Add(provider, resampler);
+            });
         }
 
         public override void Unapply(MonoStereoProvider provider)
@@ -73,11 +72,11 @@ namespace MonoStereo.Filters
 
         public override int ModifyRead(float[] buffer, int offset, int count)
         {
-            lock (pitchLock)
+            pitchLock.Execute(() =>
             {
                 speedCache = speed;
                 pitchCache = pitch;
-            }
+            });
 
             if (speedCache == 1f)
                 return base.ModifyRead(buffer, offset, count);

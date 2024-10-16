@@ -6,13 +6,20 @@ using System.Collections.Generic;
 
 namespace MonoStereo
 {
-    public class SoundEffect(ISoundEffectSource source) : MonoStereoProvider, ISeekableSampleProvider
+    public class SoundEffect : MonoStereoProvider
     {
         #region Creation
 
-        public static SoundEffect Create(string fileName) { return new SoundEffect(new SoundEffectReader(fileName)); }
+        public static SoundEffect Create(string fileName) => Create(new SoundEffectReader(fileName));
 
-        public static SoundEffect Create(CachedSoundEffect cachedSound) { return new SoundEffect(new CachedSoundEffectReader(cachedSound)); }
+        public static SoundEffect Create(CachedSoundEffect cachedSound) => Create(new CachedSoundEffectReader(cachedSound));
+
+        public static SoundEffect Create(ISoundEffectSource source) => new(source);
+
+        internal SoundEffect(ISoundEffectSource source)
+        {
+            Source = source;
+        }
 
         #endregion
 
@@ -26,24 +33,12 @@ namespace MonoStereo
 
         #region Playback
 
-        public virtual ISoundEffectSource Source { get; set; } = source;
+        public virtual ISoundEffectSource Source { get; set; }
 
         public override PlaybackState PlaybackState
         {
             get => Source.PlaybackState;
             set => Source.PlaybackState = value;
-        }
-
-        #endregion
-
-        #region Play Region
-
-        public virtual long Length => Source.Length;
-
-        public virtual long Position
-        {
-            get => Source.Position;
-            set => Source.Position = value;
         }
 
         public virtual bool IsLooped
@@ -63,8 +58,8 @@ namespace MonoStereo
             if (!AudioManager.ActiveSoundEffects.Contains(this))
                 AudioManager.AddSoundEffectInput(this);
 
-            else
-                Source.Position = 0;
+            else if (Source is ISeekableSoundEffectSource seekableSoundEffectSource)
+                seekableSoundEffectSource.Position = 0;
 
             Source.OnPlay();
         }

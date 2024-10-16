@@ -9,8 +9,8 @@
             if (VolumeLevel == 1f)
                 return;
 
-            for (int i = 0; i < buffer.Length; i++)
-                buffer[i] *= VolumeLevel;
+            for (int i = 0; i < samplesRead; i++)
+                buffer[offset + i] *= VolumeLevel;
         }
     }
 }

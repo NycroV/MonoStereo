@@ -33,7 +33,7 @@ namespace MonoStereo.Filters
         public override void PostProcess(float[] buffer, int offset, int samplesRead)
         {
             for (int i = 0; i < samplesRead; i++)
-                buffer[i] = filter.Transform(buffer[i]);
+                buffer[offset + i] = filter.Transform(buffer[offset + i]);
         }
     }
 }

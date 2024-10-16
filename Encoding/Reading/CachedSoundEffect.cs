@@ -1,4 +1,5 @@
 ﻿using MonoStereo.Encoding;
+using MonoStereo.SampleProviders;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
@@ -11,7 +12,7 @@ namespace MonoStereo
     // The cached sound effect provides a way to load a sound into memory for extremely performance-effective
     // playback at the cost of some memory overhead. In cases where a sound is expected to be played multiple
     // times, this solution is typically far more effective than opening a new file stream for each instance.
-    public class CachedSoundEffect : IDisposable
+    public class CachedSoundEffect : ILoopTags, IDisposable
     {
         public string FileName { get; private set; }
 

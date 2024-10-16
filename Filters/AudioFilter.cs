@@ -18,13 +18,14 @@ namespace MonoStereo.Filters
 
     public abstract class AudioFilter : ISampleProvider, IDisposable
     {
+        // Usually the filter that was applied just before this one
         public ISampleProvider Provider { get; set; }
 
         public MonoStereoProvider Source { get; set; }
 
-        public virtual FilterPriority Priority { get => FilterPriority.None; }
-
         public WaveFormat WaveFormat => Provider.WaveFormat;
+
+        public virtual FilterPriority Priority { get => FilterPriority.None; }
 
         public virtual int ModifyRead(float[] buffer, int offset, int count) => Provider.Read(buffer, offset, count);
 

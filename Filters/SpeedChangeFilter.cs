@@ -30,10 +30,8 @@ namespace MonoStereo.Filters
 
         public override void Apply(MonoStereoProvider provider)
         {
-            if (resamplers.ContainsKey(provider))
-                return;
-
             var resampler = new WdlResampler();
+
             resampler.SetMode(true, 2, false);
             resampler.SetFilterParms();
             resampler.SetFeedMode(false); // output driven

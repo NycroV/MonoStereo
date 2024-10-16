@@ -77,13 +77,16 @@ namespace MonoStereo.SampleProviders
 
         public void AddFilter(AudioFilter filter)
         {
+            if (Filters.Contains(filter))
+                return;
+
             lock (filters) { filters.Add(new(filter, filterIndex++)); }
             filter.Apply(this);
         }
 
         public void RemoveFilter(AudioFilter filter)
         {
-            lock (filters) { filters.Remove(filters.FirstOrDefault(entry => entry.Filter == filter)); }
+            lock (filters) { filters.Remove(filters.FirstOrDefault(entry => entry.Filter == filter, null)); }
             filter.Unapply(this);
         }
 

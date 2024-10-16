@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace MonoStereo.AudioSources
 {
-    public interface ISoundEffectSource : ISeekableSampleProvider
+    public interface ISoundEffectSource : ISampleProvider
     {
         public PlaybackState PlaybackState { get; set; }
 
@@ -22,4 +22,6 @@ namespace MonoStereo.AudioSources
 
         public abstract void Close();
     }
+
+    public interface ISeekableSoundEffectSource : ISoundEffectSource, ISeekableSampleProvider { }
 }

@@ -21,8 +21,8 @@ namespace MonoStereo.Filters
 
             if (dist > ListeningRange)
             {
-                for (int i = offset; i < samplesRead; i++)
-                    buffer[i] = 0f;
+                for (int i = 0; i < samplesRead; i++)
+                    buffer[offset + i] = 0f;
 
                 return;
             }

@@ -6,31 +6,36 @@ using System.Collections.Generic;
 
 namespace MonoStereo
 {
-    public class Song(ISongSource source) : MonoStereoProvider, ISeekableSampleProvider
+    public class Song : MonoStereoProvider
     {
         #region Creation
-
-        /// <summary>
-        /// Creates a new Song from the file at the specified path.
-        /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
-        /// </summary>
-        public static Song Create(string fileName) { return new Song(new SongReader(fileName)); }
-
-        /// <summary>
-        /// Creates a new song with the specified source.
-        /// </summary>
-        public static Song Create(ISongSource source) { return new Song(source); }
 
         /// <summary>
         /// Creates a new Song from the file at the specified path, using an intermediary buffer to make sure samples are always cached in memory.
         /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
         /// </summary>
-        public static Song CreateBuffered(string fileName, float secondsToBuffer = 5f) { return new Song(new BufferedSongReader(new SongReader(fileName), secondsToBuffer)); }
+        public static Song CreateBuffered(string fileName, float secondsToBuffer = 5f) => CreateBuffered(new SongReader(fileName), secondsToBuffer);
 
         /// <summary>
         /// Creates a new song with the specified source, using an intermediary buffer to make sure samples are always cached in memory.
         /// </summary>
-        public static Song CreateBuffered(ISongSource source, float secondsToBuffer = 5f) { return new Song(new BufferedSongReader(source, secondsToBuffer)); }
+        public static Song CreateBuffered(ISongSource source, float secondsToBuffer = 5f) => Create(BufferedSongReader.Create(source, secondsToBuffer));
+
+        /// <summary>
+        /// Creates a new Song from the file at the specified path.
+        /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
+        /// </summary>
+        public static Song Create(string fileName) => Create(new SongReader(fileName));
+
+        /// <summary>
+        /// Creates a new song with the specified source.
+        /// </summary>
+        public static Song Create(ISongSource source) => new(source);
+
+        internal Song(ISongSource source)
+        {
+            Source = source;
+        }
 
         #endregion
 
@@ -44,24 +49,12 @@ namespace MonoStereo
 
         #region Playback
 
-        public virtual ISongSource Source { get; set; } = source;
+        public virtual ISongSource Source { get; set; }
 
         public override PlaybackState PlaybackState
         {
             get => Source.PlaybackState;
             set => Source.PlaybackState = value;
-        }
-
-        #endregion
-
-        #region Play region
-
-        public virtual long Length => Source.Length;
-
-        public virtual long Position
-        {
-            get => Source.Position;
-            set => Source.Position = value;
         }
 
         public bool IsLooped
@@ -81,8 +74,8 @@ namespace MonoStereo
             if (!AudioManager.ActiveSongs.Contains(this))
                 AudioManager.AddSongInput(this);
 
-            else
-                Source.Position = 0;
+            else if (Source is ISeekableSongSource seekableSongSource)
+                seekableSongSource.Position = 0;
 
             Source.OnPlay();
         }

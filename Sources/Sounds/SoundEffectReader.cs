@@ -1,4 +1,5 @@
 ﻿using MonoStereo.Encoding;
+using MonoStereo.SampleProviders;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace MonoStereo.AudioSources.Sounds
 {
     // This is essentually just a wrapper on the MonoStereo SoundEffectFileReader,
     // with support for automatic looping.
-    public class SoundEffectReader : ISoundEffectSource
+    public class SoundEffectReader : ISeekableSoundEffectSource, ILoopTags
     {
         #region Metadata
 
