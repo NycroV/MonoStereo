@@ -6,6 +6,8 @@ namespace MonoStereo.AudioSources
 {
     public interface ISongSource : ISampleProvider
     {
+        public virtual ISongSource BaseSource { get => this; }
+
         public PlaybackState PlaybackState { get; set; }
 
         public Dictionary<string, string> Comments { get; }
@@ -23,5 +25,5 @@ namespace MonoStereo.AudioSources
         public abstract void Close();
     }
 
-    public interface ISeekableSongSource : ISongSource, ISeekableSampleProvider { }
+    public interface ISeekableSongSource : ISongSource, ISeekable { }
 }

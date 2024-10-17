@@ -46,9 +46,12 @@ namespace MonoStereo.AudioSources.Songs
 
         public readonly ISongSource Source;
 
+        public ISongSource BaseSource { get => Source.BaseSource; }
+
         public readonly BufferedReader Reader;
 
         public WaveFormat WaveFormat => Source.WaveFormat;
+
 
         public PlaybackState PlaybackState
         {
@@ -111,7 +114,7 @@ namespace MonoStereo.AudioSources.Songs
     public class SeekableBufferedSongReader : BufferedSongReader, ISeekableSongSource
     {
         public new ISeekableSongSource Source => base.Source as ISeekableSongSource;
-        
+
         internal SeekableBufferedSongReader(ISeekableSongSource source, float secondsToHold = 5f) : base(source, secondsToHold)
         {
             cachedPosition = source.Position;

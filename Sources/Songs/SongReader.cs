@@ -25,7 +25,7 @@ namespace MonoStereo.AudioSources.Songs
 
         public OggReader OggReader { get; private set; }
 
-        public PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
+        public PlaybackState PlaybackState { get; set; } = PlaybackState.Stopped;
 
         #endregion
 

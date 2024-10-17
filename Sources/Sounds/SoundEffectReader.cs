@@ -26,7 +26,7 @@ namespace MonoStereo.AudioSources.Sounds
 
         public SoundEffectFileReader WavReader { get; private set; }
 
-        public PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
+        public PlaybackState PlaybackState { get; set; } = PlaybackState.Stopped;
 
         #endregion
 

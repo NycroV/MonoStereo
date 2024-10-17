@@ -13,6 +13,7 @@ namespace MonoStereo.Filters
 
         public override FilterPriority Priority => FilterPriority.ApplyLast;
         private readonly Dictionary<MonoStereoProvider, WdlResampler> resamplers = [];
+        private readonly Dictionary<MonoStereoProvider, PitchShiftFilter.Set> shifters = [];
         private readonly QueuedLock pitchLock = new();
 
         public float Tempo
@@ -44,12 +45,7 @@ namespace MonoStereo.Filters
 
         private float speed = float.NaN;
         private float pitch = float.NaN;
-
-        private float speedCache = float.NaN;
         private float pitchCache = float.NaN;
-
-        private readonly SmbPitchShifter shifterLeft = new();
-        private readonly SmbPitchShifter shifterRight = new();
 
         public override void Apply(MonoStereoProvider provider)
         {
@@ -62,26 +58,25 @@ namespace MonoStereo.Filters
             {
                 resampler.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / speed);
                 resamplers.Add(provider, resampler);
+                shifters.Add(provider, new());
             });
         }
 
         public override void Unapply(MonoStereoProvider provider)
         {
-            resamplers.Remove(provider);
+            pitchLock.Execute(() =>
+            {
+                resamplers.Remove(provider);
+                shifters.Remove(provider);
+            });
         }
 
         public override int ModifyRead(float[] buffer, int offset, int count)
         {
-            pitchLock.Execute(() =>
-            {
-                speedCache = speed;
-                pitchCache = pitch;
-            });
-
-            if (speedCache == 1f)
+            if (speed == 1f)
                 return base.ModifyRead(buffer, offset, count);
 
-            if (speedCache == 0f)
+            if (speed == 0f)
             {
                 for (int i = 0; i < count; i++)
                     buffer[offset + i] = 0f;
@@ -89,18 +84,28 @@ namespace MonoStereo.Filters
                 return count;
             }
 
-            if (!resamplers.TryGetValue(Source, out var resampler))
-                return base.ModifyRead(buffer, offset, count);
+            int read = 0;
 
-            int framesRequested = count / AudioStandards.ChannelCount;
-            int inNeeded = resampler.ResamplePrepare(framesRequested, AudioStandards.ChannelCount, out float[] inBuffer, out int inBufferOffset);
+            pitchLock.Execute(() =>
+            {
+                if (!resamplers.TryGetValue(Source, out var resampler))
+                {
+                    read = base.ModifyRead(buffer, offset, count);
+                    return;
+                }
 
-            int inAvailable = base.ModifyRead(inBuffer, inBufferOffset, inNeeded * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
-            int outAvailable = resampler.ResampleOut(buffer, offset, inAvailable, framesRequested, AudioStandards.ChannelCount);
+                int framesRequested = count / AudioStandards.ChannelCount;
+                int inNeeded = resampler.ResamplePrepare(framesRequested, AudioStandards.ChannelCount, out float[] inBuffer, out int inBufferOffset);
 
-            return outAvailable * AudioStandards.ChannelCount;
+                int inAvailable = base.ModifyRead(inBuffer, inBufferOffset, inNeeded * AudioStandards.ChannelCount) / AudioStandards.ChannelCount;
+                int outAvailable = resampler.ResampleOut(buffer, offset, inAvailable, framesRequested, AudioStandards.ChannelCount);
+
+                read = outAvailable * AudioStandards.ChannelCount;
+            });
+
+            return read;
         }
 
-        public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShiftFilter.PitchShift(pitchCache, shifterLeft, shifterRight, buffer, offset, samplesRead);
+        public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShiftFilter.PitchShift(pitchCache, shifters[Source], buffer, offset, samplesRead);
     }
 }

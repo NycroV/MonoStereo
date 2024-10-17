@@ -16,7 +16,7 @@ namespace MonoStereo
 
         public static SoundEffect Create(ISoundEffectSource source) => new(source);
 
-        internal SoundEffect(ISoundEffectSource source)
+        protected SoundEffect(ISoundEffectSource source)
         {
             Source = source;
         }
@@ -33,7 +33,7 @@ namespace MonoStereo
 
         #region Playback
 
-        public virtual ISoundEffectSource Source { get; set; }
+        public virtual ISoundEffectSource Source { get; }
 
         public override PlaybackState PlaybackState
         {

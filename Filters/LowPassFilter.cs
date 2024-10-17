@@ -1,16 +1,26 @@
-﻿using NAudio.Dsp;
+﻿using MonoStereo.SampleProviders;
+using NAudio.Dsp;
+using System.Collections.Generic;
 
 namespace MonoStereo.Filters
 {
     public class LowPassFilter(float cutoffFrequency = 500f, float q = 0.7f) : AudioFilter
     {
+        private readonly Dictionary<MonoStereoProvider, BiQuadFilter> filters = [];
+        private readonly QueuedLock filterLock = new();
+
         public float CutoffFrequency
         {
             get => _cutoffFrequency;
             set
             {
-                filter.SetLowPassFilter(AudioStandards.SampleRate, value, Q);
-                _cutoffFrequency = value;
+                filterLock.Execute(() =>
+                {
+                    foreach (var filter in filters.Values)
+                        filter.SetHighPassFilter(AudioStandards.SampleRate, value, Q);
+
+                    _cutoffFrequency = value;
+                });
             }
         }
 
@@ -19,19 +29,28 @@ namespace MonoStereo.Filters
             get => _q;
             set
             {
-                filter.SetLowPassFilter(AudioStandards.SampleRate, CutoffFrequency, value);
-                _q = value;
+                filterLock.Execute(() =>
+                {
+                    foreach (var filter in filters.Values)
+                        filter.SetLowPassFilter(AudioStandards.SampleRate, CutoffFrequency, value);
+
+                    _q = value;
+                });
             }
         }
 
-        private float _cutoffFrequency = cutoffFrequency;
 
+        private float _cutoffFrequency = cutoffFrequency;
         private float _q = q;
 
-        private readonly BiQuadFilter filter = BiQuadFilter.LowPassFilter(AudioStandards.SampleRate, cutoffFrequency, q);
+        public override void Apply(MonoStereoProvider provider) => filterLock.Execute(() => filters.Add(provider, BiQuadFilter.LowPassFilter(AudioStandards.SampleRate, _cutoffFrequency, _q)));
+
+        public override void Unapply(MonoStereoProvider provider) => filterLock.Execute(() => filters.Remove(provider));
 
         public override void PostProcess(float[] buffer, int offset, int samplesRead)
         {
+            var filter = filters[Source];
+
             for (int i = 0; i < samplesRead; i++)
                 buffer[offset + i] = filter.Transform(buffer[offset + i]);
         }

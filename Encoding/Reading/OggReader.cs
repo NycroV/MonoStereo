@@ -1,4 +1,5 @@
 ﻿using MonoStereo.SampleProviders;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using Wave = NAudio.Wave;
@@ -6,7 +7,7 @@ using Wave = NAudio.Wave;
 namespace MonoStereo.Encoding
 {
     // From NAudio.Vorbis
-    public class OggReader(System.IO.Stream sourceStream, bool closeOnDispose = false) : Wave.WaveStream, ISeekableSampleProvider
+    public class OggReader(System.IO.Stream sourceStream, bool closeOnDispose = false) : Wave.WaveStream, ISampleProvider, ISeekable
     {
         public VorbisSampleProvider SampleProvider = new(sourceStream, closeOnDispose);
 

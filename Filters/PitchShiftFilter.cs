@@ -1,12 +1,21 @@
-﻿using NAudio.Dsp;
+﻿using MonoStereo.SampleProviders;
+using NAudio.Dsp;
 using System;
+using System.Collections.Generic;
 
 namespace MonoStereo.Filters
 {
     public class PitchShiftFilter(float pitch) : AudioFilter
     {
-        private readonly SmbPitchShifter shifterLeft = new();
-        private readonly SmbPitchShifter shifterRight = new();
+        // PitchShiftFilter.Set
+        public class Set
+        {
+            public readonly SmbPitchShifter Left = new();
+            public readonly SmbPitchShifter Right = new();
+        }
+
+        // Pitch shifters
+        public readonly Dictionary<MonoStereoProvider, Set> FilterSets = [];
 
         //Limiter constants
         internal const float LIM_THRESH = 0.95f;
@@ -23,9 +32,13 @@ namespace MonoStereo.Filters
             set { pitch = value; }
         }
 
-        public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShift(pitch, shifterLeft, shifterRight, buffer, offset, samplesRead);
+        public override void Apply(MonoStereoProvider provider) => FilterSets.Add(provider, new());
 
-        public static void PitchShift(float pitch, SmbPitchShifter shifterLeft, SmbPitchShifter shifterRight, float[] buffer, int offset, int samplesRead)
+        public override void Unapply(MonoStereoProvider provider) => FilterSets.Remove(provider);
+
+        public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShift(pitch, FilterSets[Source], buffer, offset, samplesRead);
+
+        public static void PitchShift(float pitch, Set filterSet, float[] buffer, int offset, int samplesRead)
         {
             if (pitch == 1f)
                 return;
@@ -34,6 +47,7 @@ namespace MonoStereo.Filters
             var left = new float[(samplesRead >> 1)];
             var right = new float[(samplesRead >> 1)];
             var index = 0;
+
             for (var sample = offset; sample <= samplesRead + offset - 1; sample += 2)
             {
                 left[index] = buffer[sample];
@@ -41,8 +55,8 @@ namespace MonoStereo.Filters
                 index += 1;
             }
 
-            shifterLeft.PitchShift(pitch, samplesRead >> 1, fftSize, osamp, sampleRate, left);
-            shifterRight.PitchShift(pitch, samplesRead >> 1, fftSize, osamp, sampleRate, right);
+            filterSet.Left.PitchShift(pitch, samplesRead >> 1, fftSize, osamp, sampleRate, left);
+            filterSet.Right.PitchShift(pitch, samplesRead >> 1, fftSize, osamp, sampleRate, right);
             index = 0;
 
             for (var sample = offset; sample <= samplesRead + offset - 1; sample += 2)

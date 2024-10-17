@@ -22,7 +22,7 @@ namespace MonoStereo.AudioSources.Sounds
 
         public CachedSoundEffect CachedSoundEffect { get; private set; } = cachedSound;
 
-        public PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
+        public PlaybackState PlaybackState { get; set; } = PlaybackState.Stopped;
 
         #endregion
 

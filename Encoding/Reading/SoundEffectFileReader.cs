@@ -9,7 +9,7 @@ namespace MonoStereo.Encoding
 {
     // Provides a way to read raw, uncompressed samples from a stream that is preceded by comments.
     // This custom structure is used by the sound effect compiler in the pipeline.
-    public class SoundEffectFileReader : ISeekableSampleProvider, IDisposable
+    public class SoundEffectFileReader : ISampleProvider, ISeekable, IDisposable
     {
         public string FileName { get; private set; }
 

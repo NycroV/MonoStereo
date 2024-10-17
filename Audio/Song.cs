@@ -32,7 +32,7 @@ namespace MonoStereo
         /// </summary>
         public static Song Create(ISongSource source) => new(source);
 
-        internal Song(ISongSource source)
+        protected Song(ISongSource source)
         {
             Source = source;
         }
@@ -49,7 +49,7 @@ namespace MonoStereo
 
         #region Playback
 
-        public virtual ISongSource Source { get; set; }
+        public virtual ISongSource Source { get; }
 
         public override PlaybackState PlaybackState
         {
