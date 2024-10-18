@@ -6,7 +6,7 @@
     <Authors>Nycro</Authors>
     <Company>$(AssemblyName)</Company>
     <Description>A portable NAudio based audio engine.</Description>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <ApplicationIcon>docs\Icon.ico</ApplicationIcon>
