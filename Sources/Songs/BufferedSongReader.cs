@@ -133,7 +133,9 @@ namespace MonoStereo.AudioSources.Songs
                 {
                     Reader.ClearBuffer();
 
-                    value %= Length;
+                    if (value > Length && Length > 0)
+                        value %= Length;
+
                     Source.Position = value;
                     cachedPosition = value;
                 });
