@@ -103,6 +103,7 @@ MonoStereo contains 9 built-in filters available to use:
 - `SpeedChangeFilter`
 - `TempoChangeFilter`
 - `VolumeFilter`
+
 Additionally, filter instances are shareable across multiple audio instances. If you create one instance of a `PitchShiftFilter`, it can be applied to multiple audio sources (songs and sounds alike) - however, filters cannot be applied to the same source multiple times. Changing a property of the filter will carry that change over to every other audio source using the same filter.
 ```cs
 SpeedChangeFilter speed = new(0.5f);
