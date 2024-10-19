@@ -40,4 +40,4 @@ AudioManager.MasterMixer.AddFilter(filter);
 ```
 > Note: since filters are reference types, in order to remove them, you will need to keep track of your filter's object instance.
 
-In order to implement custom audio filters, see CUSTOM_SOURCES.md.
+In order to implement custom audio filters, see the [Custom Sources](https://github.com/NycroV/MonoStereo/blob/master/docs/CUSTOM_SOURCES.md) documentation.
