@@ -47,6 +47,7 @@ When you no longer need the cached sound effect, call `cachedSound.Dispose()` to
 Whenever a song or sound effect completes its playback, it is automatically removed from the mixer, and its source is disposed. If you want to override this behavior, you can have a class inherit from either `Song` or `SoundEffect` and override the `Close()` method.
 > Cached sound effects are not disposed whenever they complete playback - only the encapsulating reader of that cached sound.
 
+
 For both songs and sounds, you have access to the `Song` and `SoundEffect` instances that control playback for these objects. Looping support is integrated by default - just change the `IsLooped` property. Additionally, you can call `Pause()`, `Resume()`, and `Stop()` to control the playback state.
 
 A couple interfaces with some extra capabilties are implemented by default in MonoStereo. If you want to check if a song or sound effect's source is seekable (and, subsequently, seek it), try casting `Song.Source` (or `SoundEffect.Source`) to an `ISeekable`, and use the `Position` property. If you want to check for looping tags, try casting to an `ILoopTags`. All of MonoStereo's integrated sources implement these interfaces by default.
