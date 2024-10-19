@@ -20,7 +20,7 @@ Song song = Song.CreateBuffered("path/to/song", secondsToHold); // Will read sec
 song.Play();
 ```
 Buffered reading only reads the source file ahead of time. Effects and filters are still applied in real time, based off of your configured latency.
-You may have noticed some extra overloads to these methods which take in custom song sources. For more info about custom sources, see CUSTOM_SOURCES.md.
+You may have noticed some extra overloads to these methods which take in custom song sources. For more info about custom sources, see the [Custom Sources](https://github.com/NycroV/MonoStereo/blob/master/docs/CUSTOM_SOURCES.md) documentation.
 
 ### Sound Effects
 When playing sound effects, you have 2 options. For sounds that won't be played back very frequently, you can create and play them the same way you would with a song.
@@ -51,4 +51,4 @@ For both songs and sounds, you have access to the `Song` and `SoundEffect` insta
 
 A couple interfaces with some extra capabilties are implemented by default in MonoStereo. If you want to check if a song or sound effect's source is seekable (and, subsequently, seek it), try casting `Song.Source` (or `SoundEffect.Source`) to an `ISeekable`, and use the `Position` property. If you want to check for looping tags, try casting to an `ILoopTags`. All of MonoStereo's integrated sources implement these interfaces by default.
 
-To add filters to your audio, see FILTERS.md.
+To add filters to your audio, see the [Filters](https://github.com/NycroV/MonoStereo/blob/master/docs/FILTERS.md) documentation.
