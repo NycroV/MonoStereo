@@ -6,9 +6,10 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoStereo", "src\MonoStereo\MonoStereo.csproj", "{1E97CFE1-2035-4E22-B1E7-8D93517C1E57}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlaybackTests", "tests\PlaybackTests\PlaybackTests.csproj", "{C77D60BA-B5CA-4D28-BD01-2E3ECAC0377D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{1E97CFE1-2035-4E22-B1E7-8D93517C1E57} = {1E97CFE1-2035-4E22-B1E7-8D93517C1E57}
-	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoStereo.Pipeline", "src\MonoStereo.Pipeline\MonoStereo.Pipeline.csproj", "{037D951E-52B1-4BC0-A327-E733FAA55139}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{40517CBF-D931-4271-ADA4-EDD9584D52C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,9 +25,16 @@ Global
 		{C77D60BA-B5CA-4D28-BD01-2E3ECAC0377D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C77D60BA-B5CA-4D28-BD01-2E3ECAC0377D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C77D60BA-B5CA-4D28-BD01-2E3ECAC0377D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{037D951E-52B1-4BC0-A327-E733FAA55139}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{037D951E-52B1-4BC0-A327-E733FAA55139}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{037D951E-52B1-4BC0-A327-E733FAA55139}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{037D951E-52B1-4BC0-A327-E733FAA55139}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C77D60BA-B5CA-4D28-BD01-2E3ECAC0377D} = {40517CBF-D931-4271-ADA4-EDD9584D52C8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B6F7995E-BAC3-4DD9-B946-477E6D70D557}

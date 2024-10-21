@@ -1,4 +1,4 @@
-﻿using MonoStereo.SampleProviders;
+﻿using MonoStereo.Structures;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;

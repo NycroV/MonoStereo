@@ -1,4 +1,4 @@
-﻿namespace MonoStereo.SampleProviders
+﻿namespace MonoStereo.Structures
 {
     public interface ILoopTags
     {

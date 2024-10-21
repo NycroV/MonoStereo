@@ -1,10 +1,11 @@
 ﻿using MonoStereo.SampleProviders;
+using MonoStereo.Structures;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using Wave = NAudio.Wave;
 
-namespace MonoStereo.Encoding
+namespace MonoStereo.Decoding
 {
     // From NAudio.Vorbis
     public class OggReader(System.IO.Stream sourceStream, bool closeOnDispose = false) : Wave.WaveStream, ISampleProvider, ISeekable

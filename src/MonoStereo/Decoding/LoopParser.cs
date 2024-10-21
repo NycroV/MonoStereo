@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MonoStereo.Encoding
+namespace MonoStereo.Decoding
 {
     public static class LoopParser
     {

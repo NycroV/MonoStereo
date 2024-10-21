@@ -1,4 +1,4 @@
-﻿using MonoStereo.SampleProviders;
+﻿using MonoStereo.Structures;
 using NAudio.Dsp;
 using System.Collections.Generic;
 

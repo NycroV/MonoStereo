@@ -1,11 +1,11 @@
-﻿using MonoStereo.SampleProviders;
+﻿using MonoStereo.Structures;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 
-namespace MonoStereo.Encoding
+namespace MonoStereo.Decoding
 {
     // Provides a way to read raw, uncompressed samples from a stream that is preceded by comments.
     // This custom structure is used by the sound effect compiler in the pipeline.
