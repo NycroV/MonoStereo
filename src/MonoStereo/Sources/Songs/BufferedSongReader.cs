@@ -3,7 +3,7 @@ using NAudio.Wave;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace MonoStereo.AudioSources.Songs
+namespace MonoStereo.Sources.Songs
 {
     /// <summary>
     /// Reads a song a configurable amount of seconds ahead of time into memory to offload expensive IO operations to a background thread.

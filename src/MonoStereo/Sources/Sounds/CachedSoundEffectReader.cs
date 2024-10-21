@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MonoStereo.AudioSources.Sounds
+namespace MonoStereo.Sources.Sounds
 {
     public class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ISeekableSoundEffectSource, ILoopTags
     {

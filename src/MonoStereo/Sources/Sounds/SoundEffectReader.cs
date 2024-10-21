@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace MonoStereo.AudioSources.Sounds
+namespace MonoStereo.Sources.Sounds
 {
     // This is essentually just a wrapper on the MonoStereo SoundEffectFileReader,
     // with support for automatic looping.

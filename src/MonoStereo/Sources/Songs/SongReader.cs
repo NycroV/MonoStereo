@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace MonoStereo.AudioSources.Songs
+namespace MonoStereo.Sources.Songs
 {
     // This is essentially just a wrapper on an OggReader, with support for automatic looping.
     // MonoStereo song files are compiled as OggFiles by default.

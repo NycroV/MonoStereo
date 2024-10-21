@@ -1,5 +1,5 @@
-﻿using MonoStereo.AudioSources;
-using MonoStereo.AudioSources.Sounds;
+﻿using MonoStereo.Sources;
+using MonoStereo.Sources.Sounds;
 using MonoStereo.Structures;
 using NAudio.Wave;
 using System.Collections.Generic;

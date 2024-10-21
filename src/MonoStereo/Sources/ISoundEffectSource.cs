@@ -2,7 +2,7 @@
 using NAudio.Wave;
 using System.Collections.Generic;
 
-namespace MonoStereo.AudioSources
+namespace MonoStereo.Sources
 {
     public interface ISoundEffectSource : ISampleProvider
     {

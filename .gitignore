@@ -361,4 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/build/slim/ILRepack/MonoStereo.Slim.Dependencies.dll
+/build/ILRepack/MonoStereo.Dependencies.dll
