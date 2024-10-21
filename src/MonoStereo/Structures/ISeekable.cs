@@ -1,7 +1,7 @@
 ﻿using NAudio.Wave;
 using System;
 
-namespace MonoStereo.SampleProviders
+namespace MonoStereo.Structures
 {
     public interface ISeekable
     {

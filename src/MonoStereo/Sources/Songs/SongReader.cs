@@ -1,5 +1,5 @@
-﻿using MonoStereo.Encoding;
-using MonoStereo.SampleProviders;
+﻿using MonoStereo.Decoding;
+using MonoStereo.Structures;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;

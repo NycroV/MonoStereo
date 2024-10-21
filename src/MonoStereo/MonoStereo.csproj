@@ -3,11 +3,11 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Title>MonoStereo.Slim</Title>
+		<Title>MonoStereo</Title>
 		<Authors>Nycro</Authors>
 		<Company>$(AssemblyName)</Company>
-		<Description>An NAudio based audio engine for MonoGame.</Description>
-		<Version>1.4.1</Version>
+		<Description>An custom audio engine built using NAudio and PortAudio.</Description>
+		<Version>1.4.3</Version>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<ApplicationIcon>Icon.ico</ApplicationIcon>
@@ -17,10 +17,10 @@
 		<RepositoryUrl>https://github.com/NycroV/MonoStereo/tree/master</RepositoryUrl>
 		<PackageTags>MonoGame;Audio;Audio-Engine</PackageTags>
 		<Nullable>disable</Nullable>
-		<BaseOutputPath>..\..\build\slim\bin</BaseOutputPath>
-		<BaseIntermediateOutputPath>..\..\build\slim\obj</BaseIntermediateOutputPath>
-		<AssemblyName>$(MSBuildProjectName).Slim</AssemblyName>
-		<PackageOutputPath>..\..\build\slim\</PackageOutputPath>
+		<BaseOutputPath>..\..\build\artifacts\$(AssemblyName)\bin</BaseOutputPath>
+		<BaseIntermediateOutputPath>..\..\build\artifacts\$(AssemblyName)\obj</BaseIntermediateOutputPath>
+		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
+		<PackageOutputPath>..\..\build\packages\</PackageOutputPath>
 	</PropertyGroup>
 	
 	<ItemGroup>

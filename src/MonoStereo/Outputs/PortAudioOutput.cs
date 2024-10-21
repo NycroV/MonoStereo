@@ -1,4 +1,5 @@
 ﻿using MonoStereo.SampleProviders;
+using MonoStereo.Structures;
 using PortAudioSharp;
 using System;
 using System.Runtime.InteropServices;

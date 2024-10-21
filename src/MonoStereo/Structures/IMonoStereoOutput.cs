@@ -1,6 +1,6 @@
 ﻿using MonoStereo.SampleProviders;
 
-namespace MonoStereo
+namespace MonoStereo.Structures
 {
     public interface IMonoStereoOutput
     {
