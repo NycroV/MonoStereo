@@ -4,7 +4,7 @@
     <BaseOutputPath>..\..\build\artifacts\$(AssemblyName)\bin</BaseOutputPath>
     <BaseIntermediateOutputPath>..\..\build\artifacts\$(AssemblyName)\obj</BaseIntermediateOutputPath>
     <Title>MonoStereo.Pipeline</Title>
-    <Version>1.4.3</Version>
+    <Version>1.5.0</Version>
     <Authors>Nycro</Authors>
     <Company>MonoStereo</Company>
     <Description>MonoGame pipeline integration for the MonoStereo audio engine.</Description>
@@ -15,6 +15,9 @@
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageOutputPath>..\..\build\packages\</PackageOutputPath>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="obj\**" />
