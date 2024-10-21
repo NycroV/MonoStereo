@@ -4,8 +4,6 @@ namespace MonoStereo
 {
     public interface IMonoStereoOutput
     {
-        public int DesiredLatency { get; }
-
         void Init(AudioMixer waveProvider);
 
         void Play();

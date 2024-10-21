@@ -27,11 +27,6 @@ namespace MonoStereo
         internal static List<CachedSoundEffect> CachedSounds { get; private set; } = [];
 
         /// <summary>
-        /// The time in ms before audio reaches the output device.
-        /// </summary>
-        public static int Latency => Output.DesiredLatency;
-
-        /// <summary>
         /// Controls the volume of sound effects
         /// </summary>
         public static float SoundEffectVolume
@@ -105,17 +100,12 @@ namespace MonoStereo
             float musicVolume = 1f,
             float soundEffectVolume = 1f,
 
-            int latency = 75,
-            int deviceNumber = -1,
-            int bufferCount = 8)
+            int? deviceIndex = null,
+            double? latency = null)
         {
-            HighPriorityWaveOutEvent output = new()
-            {
-                DesiredLatency = latency,
-                DeviceNumber = deviceNumber,
-                NumberOfBuffers = bufferCount
-            };
-
+            // Initialize to PortAudio output by default.
+            // Passing in null utilizes the system defaults.
+            PortAudioOutput output = new(deviceIndex, latency);
             InitializeCustomOutput(output, shouldShutdown, masterVolume, musicVolume, soundEffectVolume);
         }
 
@@ -155,7 +145,6 @@ namespace MonoStereo
             Output = customOutput;
 
             Output.Init(MasterMixer);
-            Output.Play();
 
             AudioThread = new(() => RunAudioThread(shouldShutdown)) { Priority = ThreadPriority.BelowNormal };
             AudioThread.Start();
@@ -165,6 +154,8 @@ namespace MonoStereo
 
         internal static void RunAudioThread(Func<bool> shouldShutdown)
         {
+            Output.Play();
+
             while (!shouldShutdown())
                 Update();
 

@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>MonoStereo.Slim</Title>
+		<Authors>Nycro</Authors>
+		<Company>$(AssemblyName)</Company>
+		<Description>An NAudio based audio engine for MonoGame.</Description>
+		<Version>1.4.1</Version>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<ApplicationIcon>Icon.ico</ApplicationIcon>
+		<PackageIcon>Icon.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<RepositoryUrl>https://github.com/NycroV/MonoStereo/tree/master</RepositoryUrl>
+		<PackageTags>MonoGame;Audio;Audio-Engine</PackageTags>
+		<Nullable>disable</Nullable>
+		<BaseOutputPath>..\..\build\slim\bin</BaseOutputPath>
+		<BaseIntermediateOutputPath>..\..\build\slim\obj</BaseIntermediateOutputPath>
+		<AssemblyName>$(MSBuildProjectName).Slim</AssemblyName>
+		<PackageOutputPath>..\..\build\slim\</PackageOutputPath>
+	</PropertyGroup>
+	
+	<ItemGroup>
+	  <Compile Remove="obj\**" />
+	  <EmbeddedResource Remove="obj\**" />
+	  <None Remove="obj\**" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Content Include="Icon.ico" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <None Include="..\..\docs\Icon.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="..\..\docs\LICENSE.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="..\..\docs\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="NAudio.Core" Version="2.2.1" />
+		<PackageReference Include="PortAudioSharp2" Version="1.0.4" />
+		<PackageReference Include="z440.atl.core" Version="6.6.0" />
+		<PackageReference Include="YellowDogMan.NVorbis" Version="0.10.4.1-ydm-0.1.1" />
+	</ItemGroup>
+	
+</Project>
