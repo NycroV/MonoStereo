@@ -5,14 +5,21 @@ namespace PlaybackTests.UnitTests
     [TestClass]
     public class SongTests
     {
-        static bool ShutdownEngine;
+        static readonly QueuedLock TestLock = new();
 
         const string Assets = @"../../../../TestAssets";
+
+        const string CompiledAssets = $"{Assets}/Compiled";
+
+        const string RawAssets = $"{Assets}/Raw";
+
+        static bool ShutdownEngine = false;
 
         [TestMethod]
         public void PlaySong()
         {
             ShutdownEngine = false;
+
             AudioManager.Initialize(() => ShutdownEngine, 1f, 1f, 1f);
             Logger.LogMessage("Audio engine initialized");
 
