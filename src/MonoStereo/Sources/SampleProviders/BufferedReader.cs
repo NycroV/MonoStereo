@@ -12,7 +12,7 @@ namespace MonoStereo.SampleProviders
 
         public float SecondsToHold
         {
-            get => bufferLength / WaveFormat.SampleRate / WaveFormat.Channels;
+            get => bufferLength / (WaveFormat.SampleRate * WaveFormat.Channels);
             set => bufferLength = (int)(WaveFormat.SampleRate * WaveFormat.Channels * value);
         }
 
@@ -45,8 +45,7 @@ namespace MonoStereo.SampleProviders
                     return;
 
                 int samplesRequested = bufferLength - sampleBuffer.Count;
-                while (samplesRequested % WaveFormat.Channels != 0)
-                    samplesRequested--;
+                samplesRequested -= samplesRequested % WaveFormat.Channels;
 
                 if (samplesRequested > 0)
                 {

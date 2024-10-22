@@ -25,8 +25,6 @@ namespace MonoStereo
 
         public static AudioMixer MasterMixer { get; private set; }
 
-        internal static List<CachedSoundEffect> CachedSounds { get; private set; } = [];
-
         /// <summary>
         /// Controls the volume of sound effects
         /// </summary>
@@ -106,9 +104,16 @@ namespace MonoStereo
         {
             // Initialize to PortAudio output by default.
             // Passing in null utilizes the system defaults.
-            PortAudioOutput output = new(deviceIndex, latency);
+            PortAudioOutput output = DefaultOutput(deviceIndex, latency);
             InitializeCustomOutput(output, shouldShutdown, masterVolume, musicVolume, soundEffectVolume);
         }
+        /// <summary>
+        /// Creates the default MonoStereo output stream, which is routed through PortAudio.
+        /// </summary>
+        /// <param name="deviceIndex"></param>
+        /// <param name="latency"></param>
+        /// <returns></returns>
+        public static PortAudioOutput DefaultOutput(int? deviceIndex = null, double? latency = null) => new(deviceIndex, latency);
 
         /// <summary>
         /// Initializes the MonoStereo Audio Engine using a custom <see cref="IMonoStereoOutput"/>. You should only use this if you know what you're doing.<br/>
@@ -155,23 +160,26 @@ namespace MonoStereo
 
         internal static void RunAudioThread(Func<bool> shouldShutdown)
         {
-            Output.Play();
+            try
+            {
+                Output.Play();
 
-            while (!shouldShutdown())
-                Update();
+                while (!shouldShutdown())
+                    Update();
+            }
 
-            // After the `shouldShutdown` function has returned true,
-            // commense shutdown. This is done in a way such that the engine
-            // COULD be started again without the need for program reload.
-            Output.Dispose();
-            MasterMixer.Dispose();
-            MusicMixer.Dispose();
-            SoundMixer.Dispose();
+            finally
+            {
+                // After the `shouldShutdown` function has returned true,
+                // commense shutdown. This is done in a way such that the engine
+                // COULD be started again without the need for program reload.
+                Output.Dispose();
+                MasterMixer.Dispose();
+                MusicMixer.Dispose();
+                SoundMixer.Dispose();
 
-            IsRunning = false;
-
-            foreach (CachedSoundEffect sound in CachedSounds.ToArray())
-                sound.Dispose();
+                IsRunning = false;
+            }
         }
 
         internal static void Update()

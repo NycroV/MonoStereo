@@ -40,7 +40,6 @@ namespace MonoStereo
             Comments = fileReader.Comments;
 
             Comments.ParseLoop(out long loopStart, out long loopEnd, WaveFormat.Channels);
-            AudioManager.CachedSounds.Add(this);
 
             LoopStart = loopStart;
             LoopEnd = loopEnd;
@@ -95,7 +94,6 @@ namespace MonoStereo
             Comments = comments?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
 
             audioData.Clear();
-            AudioManager.CachedSounds.Add(this);
         }
 
         public SoundEffect GetInstance() => SoundEffect.Create(this);
@@ -109,8 +107,6 @@ namespace MonoStereo
 
         public void Dispose()
         {
-            AudioManager.CachedSounds.Remove(this);
-
             FileName = null;
             WaveFormat = null;
             AudioData = null;
