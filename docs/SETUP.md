@@ -42,4 +42,6 @@ protected override void Initialize()
 This method also takes in parameters for the master, music, and sound mixer volume levels.
 > For more info on how to create custom outputs, see [Custom Sources](https://github.com/NycroV/MonoStereo/blob/master/docs/CUSTOM_SOURCES.md)
 
+Once the audio engine has been started, it's a good idea to incorporate `AudioManager.ThrowIfErrored()` somewhere into your game's update loop. This will forward any errors that might have been thrown from the audio thread to your main thread, allowing for easier debugging and possible deadlock prevention.
+
 Now that you've set up your audio engine, you're ready to play some audio! See the [Playback](https://github.com/NycroV/MonoStereo/blob/master/docs/PLAYBACK.md) documentation.
