@@ -46,9 +46,8 @@ To create a custom audio output implementation, you can have a class implement t
 Within this interface, you will need to implement a total of 4 methods, and one property:
 - `Init(AudioMixer waveProvider)` - This is called when the audio engine is initialized. `waveProvider` is the engine's master mixer, from which you can call `Read()` to gather audio data.
 - `Play()` - Called when the audio engine starts. You should begin reading from the master mixer and playing to the output here.
-- `Update()` - A method that is called once after every successive update chain in the audio engine. This is typically called very rapidly. You can update your output here.
+- `Update()` - A method that is called once after every successive update chain in the audio engine. This is typically called very rapidly. You can update your output here. If your playback thread throws any errors, you can throw them again here and forward error reporting to your main thread via `AudioManager.ThrowIfErrored()`.
 - `Dispose()` - Called when the audio engine is shutting down. Dispose your resources here.
-- `DesiredLatency { get; }` - A property that represents the desired latency for your output. It is up to you to make sure that this value accurately reflects your output's real latency.
 
 After implementing all of the above, all you need to do is pass your custom output to the engine on startup!
 ```cs
