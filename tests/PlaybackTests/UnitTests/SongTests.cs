@@ -23,14 +23,14 @@ namespace PlaybackTests.UnitTests
             AudioManager.Initialize(() => ShutdownEngine, 1f, 1f, 1f);
             Logger.LogMessage("Audio engine initialized");
 
-            string songPath = $"{Assets}/Compiled/Navigating";
+            string songPath = $"{CompiledAssets}/Navigating";
             Song song = Song.CreateBuffered(songPath);
             Logger.LogMessage("Song {0} loaded", songPath);
 
             song.Play();
             Logger.LogMessage("Song playback started");
 
-            int secondsToSleep = 10;
+            int secondsToSleep = 60;
             Logger.LogMessage("Sleeping for {0} seconds", secondsToSleep);
             Thread.Sleep(TimeSpan.FromSeconds(secondsToSleep));
 

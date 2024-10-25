@@ -31,15 +31,15 @@ namespace MonoStereo.Sources.Songs
 
         #region Play region
 
-        public long Length => OggReader.Length;
+        public long Length => OggReader.SampleLength;
 
         public long Position
         {
-            get => OggReader.Position;
+            get => OggReader.SamplePosition;
             set
             {
-                if (OggReader.Position != value)
-                    OggReader.Position = value;
+                if (OggReader.SamplePosition != value)
+                    OggReader.SamplePosition = value;
             }
         }
 

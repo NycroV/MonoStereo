@@ -3,12 +3,11 @@ using MonoStereo.Structures;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
-using Wave = NAudio.Wave;
 
 namespace MonoStereo.Decoding
 {
     // From NAudio.Vorbis
-    public class OggReader(System.IO.Stream sourceStream, bool closeOnDispose = false) : Wave.WaveStream, ISampleProvider, ISeekable
+    public class OggReader(System.IO.Stream sourceStream, bool closeOnDispose = true) : WaveStream, ISampleProvider, ISeekable
     {
         public VorbisSampleProvider SampleProvider = new(sourceStream, closeOnDispose);
 
@@ -29,19 +28,33 @@ namespace MonoStereo.Decoding
             base.Dispose(disposing);
         }
 
-        public override Wave.WaveFormat WaveFormat => SampleProvider.WaveFormat;
+        public string FileName { get; } = string.Empty;
+
+        public override WaveFormat WaveFormat => SampleProvider.WaveFormat;
+
+        /// <summary>
+        /// Length of the stream, in bytes.
+        /// </summary>
+        public override long Length => SampleProvider.Length * WaveFormat.BlockAlign;
 
         /// <summary>
         /// Length of the stream, in samples.
         /// </summary>
-        public override long Length => SampleProvider.Length * WaveFormat.Channels;
+        public long SampleLength => SampleProvider.Length * WaveFormat.Channels;
 
-        public string FileName { get; } = string.Empty;
+        /// <summary>
+        /// Current byte position of the stream.
+        /// </summary>
+        public override long Position
+        {
+            get => SampleProvider.SamplePosition * WaveFormat.BlockAlign;
+            set => SampleProvider.SamplePosition = value / WaveFormat.BlockAlign;
+        }
 
         /// <summary>
         /// Current sample position of the stream.
         /// </summary>
-        public override long Position
+        public long SamplePosition
         {
             get => SampleProvider.SamplePosition * WaveFormat.Channels;
             set => SampleProvider.SamplePosition = value / WaveFormat.Channels;

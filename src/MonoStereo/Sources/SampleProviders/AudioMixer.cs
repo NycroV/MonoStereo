@@ -4,35 +4,42 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 namespace MonoStereo.SampleProviders
 {
-    public class AudioMixer : MonoStereoProvider
+    public class AudioMixer(float volume, params ISampleProvider[] initialInputs) : AudioMixer<ISampleProvider>(volume, initialInputs)
     {
-        public MixerSampleProvider Inputs { get; private set; }
+    }
 
-        public override WaveFormat WaveFormat => Inputs.WaveFormat;
+    public class AudioMixer<T> : MonoStereoProvider where T : ISampleProvider
+    {
+        internal MixerSampleProvider Source { get; }
+
+        public IEnumerable<T> MixerInputs => Source.MixerInputs.Cast<T>();
+
+        public override WaveFormat WaveFormat => Source.WaveFormat;
 
         public override PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
 
-        public AudioMixer(float volume, params ISampleProvider[] initialInputs)
+        public AudioMixer(float volume, params T[] initialInputs)
         {
-            Inputs = new(WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.SampleRate, AudioStandards.ChannelCount)) { ReadFully = true };
+            Source = new(WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.SampleRate, AudioStandards.ChannelCount)) { ReadFully = true };
 
             Volume = volume;
 
-            Inputs.SetMixerInputs(initialInputs);
+            Source.SetMixerInputs(initialInputs.Cast<ISampleProvider>());
         }
 
         public override void Play() => AudioManager.MasterMixer.AddInput(this);
 
-        public void AddInput(ISampleProvider sampleProvider) => Inputs.AddMixerInput(sampleProvider);
+        public void AddInput(T sampleProvider) => Source.AddMixerInput(sampleProvider);
 
-        public void RemoveInput(ISampleProvider sampleProvider) => Inputs.RemoveMixerInput(sampleProvider);
+        public void RemoveInput(T sampleProvider) => Source.RemoveMixerInput(sampleProvider);
 
-        public override int ReadSource(float[] buffer, int offset, int count) => Inputs.Read(buffer, offset, count);
+        public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);
 
-        public override void Close() => Inputs.Dispose();
+        public override void Close() => Source.Dispose();
 
         /// <summary>
         /// A sample provider mixer, allowing inputs to be added and removed

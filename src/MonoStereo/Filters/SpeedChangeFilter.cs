@@ -23,6 +23,9 @@ namespace MonoStereo.Filters
 
                 _speed = value;
 
+                if (_speed == 0f)
+                    return;
+
                 foreach (var sampler in resamplers)
                     sampler.Value.SetRates(AudioStandards.SampleRate, AudioStandards.SampleRate / _speed);
             }

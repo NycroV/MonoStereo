@@ -60,25 +60,54 @@ namespace MonoStereo
 
         public static ReadOnlyCollection<SoundEffect> ActiveSoundEffects { get { lock (activeSoundEffects) { return activeSoundEffects.Cast<SoundEffect>().ToList().AsReadOnly(); } } }
 
+        /// <summary>
+        /// Adds a song input to the mixer.<br/>
+        /// Instead of using this, use <see cref="Song.Play"/>
+        /// </summary>
         public static void AddSongInput(Song song)
         {
             lock (activeSongs) { activeSongs.Add(song); }
         }
 
+        /// <summary>
+        /// Removes a song input from the mixer.<br/>
+        /// Instead of using this, use <see cref="Song.Stop"/>
+        /// </summary>
         public static void RemoveSongInput(Song song)
         {
             lock (activeSongs) { activeSongs.Remove(song); }
         }
 
+        /// <summary>
+        /// Adds a sound effect input to the mixer.<br/>
+        /// Instead of using this, use <see cref="SoundEffect.Play"/>
+        /// </summary>
         public static void AddSoundEffectInput(SoundEffect soundEffect)
         {
             lock (activeSoundEffects) { activeSoundEffects.Add(soundEffect); }
         }
 
+        /// <summary>
+        /// Removes a sound effect input from the mixer.<br/>
+        /// Instead of using this, use <see cref="SoundEffect.Stop"/>
+        /// </summary>
         public static void RemoveSoundInput(SoundEffect soundEffect)
         {
             lock (activeSoundEffects) { activeSoundEffects.Remove(soundEffect); }
         }
+
+        /// <summary>
+        /// If an <see cref="Exception"/> was thrown by the playback thread, this method will throw that error again.<br/>
+        /// This allows you to check for audio errors on the main thread.
+        /// </summary>
+        public static void ThrowIfErrored()
+        {
+            if (PlaybackError != null)
+                throw PlaybackError;
+        }
+
+        // Used to forward errors from the playback thread.
+        private static Exception PlaybackError = null;
 
         /// <summary>
         /// Initializes the MonoStereo Audio Engine. Note that using this method overload will default to WinMM as an output source.<br/>
@@ -107,6 +136,7 @@ namespace MonoStereo
             PortAudioOutput output = DefaultOutput(deviceIndex, latency);
             InitializeCustomOutput(output, shouldShutdown, masterVolume, musicVolume, soundEffectVolume);
         }
+
         /// <summary>
         /// Creates the default MonoStereo output stream, which is routed through PortAudio.
         /// </summary>
@@ -136,13 +166,13 @@ namespace MonoStereo
             MusicMixer = new(musicVolume);
             MasterMixer = new(masterVolume, SoundMixer, MusicMixer);
 
-            SoundMixer.Inputs.MixerInputEnded += (sender, e) =>
+            SoundMixer.Source.MixerInputEnded += (sender, e) =>
             {
                 SoundEffect sound = e.SampleProvider as SoundEffect;
                 sound.Stop();
             };
 
-            MusicMixer.Inputs.MixerInputEnded += (sender, e) =>
+            MusicMixer.Source.MixerInputEnded += (sender, e) =>
             {
                 Song song = e.SampleProvider as Song;
                 song.Stop();
@@ -150,6 +180,7 @@ namespace MonoStereo
 
             Output = customOutput;
 
+            PlaybackError = null;
             Output.Init(MasterMixer);
 
             AudioThread = new(() => RunAudioThread(shouldShutdown)) { Priority = ThreadPriority.BelowNormal };
@@ -166,6 +197,11 @@ namespace MonoStereo
 
                 while (!shouldShutdown())
                     Update();
+            }
+
+            catch (Exception ex)
+            {
+                PlaybackError = ex;
             }
 
             finally
@@ -188,7 +224,7 @@ namespace MonoStereo
             {
                 // The .ToList() calls duplicate the sources so as not to
                 // cause enumeration errors
-                var inputs = mixer.Inputs.MixerInputs.Cast<MonoStereoProvider>().ToList();
+                var inputs = mixer.MixerInputs.Cast<MonoStereoProvider>().ToList();
 
                 foreach (var input in inputs)
                 {
@@ -201,7 +237,7 @@ namespace MonoStereo
                 lock (newInputs)
                 {
                     var sources = newInputs.Cast<ISampleProvider>();
-                    mixer.Inputs.SetMixerInputs(sources);
+                    mixer.Source.SetMixerInputs(sources);
                 }
             }
 

@@ -1,7 +1,10 @@
 ﻿using MonoStereo.SampleProviders;
 using MonoStereo.Structures;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using PortAudioSharp;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using PortAudioStream = PortAudioSharp.Stream;
 
@@ -17,9 +20,53 @@ namespace MonoStereo.Outputs
 
         public PortAudioStream PlaybackStream { get; private set; }
 
-        private AudioMixer output = null;
+        private AudioMixer mixer = null;
+
+        private ISampleProvider output = null;
 
         private float[] intermediaryBuffer = null;
+
+        private Exception playbackError = null;
+
+        #endregion
+
+        #region Output Utilities
+
+        /// <summary>
+        /// Lists all PortAudio device indexes that are available for output (speakers or headphones).
+        /// </summary>
+        /// <returns>An array of device indexes that are valid to pass as the "output device index" parameter.</returns>
+        public static int[] GetOutputDeviceIndexes()
+        {
+            List<int> indexes = [];
+            
+            for (int i = 0; i < PortAudio.DeviceCount; i++)
+            {
+                if (PortAudio.GetDeviceInfo(i).maxOutputChannels > 0)
+                    indexes.Add(i);
+            }
+
+            return indexes.ToArray();
+        }
+
+        // This is currently unused. Potential future implementation?
+        //
+        ///// <summary>
+        ///// Lists all PortAudio device indexes that are available for input (microphones).
+        ///// </summary>
+        ///// <returns>An array of device indexes that are valid to pass as the "output device index" parameter.</returns>
+        //public static int[] GetInputDeviceIndexes()
+        //{
+        //    List<int> indexes = [];
+
+        //    for (int i = 0; i < PortAudio.DeviceCount; i++)
+        //    {
+        //        if (PortAudio.GetDeviceInfo(i).maxInputChannels > 0)
+        //            indexes.Add(i);
+        //    }
+
+        //    return indexes.ToArray();
+        //}
 
         #endregion
 
@@ -27,14 +74,28 @@ namespace MonoStereo.Outputs
         {
             // Initialize PortAudio's API and assign the output.
             PortAudio.Initialize();
-            output = waveProvider;
+
+            mixer = waveProvider;
 
             // If no device index or specific latency are requested, we use the system defaults.
             int deviceIndex = DeviceIndex ?? PortAudio.DefaultOutputDevice;
-            double latency = Latency ?? PortAudio.GetDeviceInfo(deviceIndex).defaultLowInputLatency;
+            var deviceInfo = PortAudio.GetDeviceInfo(deviceIndex);
+
+            double latency = Latency ?? deviceInfo.defaultLowInputLatency;
+
+            // Mix down to mono if the output only supports 1 channel.
+            if (deviceInfo.maxOutputChannels == 1)
+                output = new StereoToMonoSampleProvider(mixer)
+                {
+                    LeftVolume = 0.5f,
+                    RightVolume = 0.5f
+                };
+
+            else
+                output = mixer;
 
             // This should be pretty self explanatory
-            StreamParameters streamFormat = new()
+            StreamParameters outputStreamFormat = new()
             {
                 device = deviceIndex,
                 channelCount = AudioStandards.ChannelCount,
@@ -44,7 +105,7 @@ namespace MonoStereo.Outputs
             };
 
             // We use NoFlag here so that PortAudio can handle clipping and dithering for us. C is so much faster!
-            PlaybackStream = new(null, streamFormat, AudioStandards.SampleRate, 0, StreamFlags.NoFlag, Callback, IntPtr.Zero);
+            PlaybackStream = new(null, outputStreamFormat, AudioStandards.SampleRate, 0, StreamFlags.NoFlag, Callback, IntPtr.Zero);
 
             // The intermediary buffer is read into, and then marshalled to PortAudio.
             intermediaryBuffer = [];
@@ -64,7 +125,17 @@ namespace MonoStereo.Outputs
 
             // Make sure our intermediary buffer is long enough to hold all the samples.
             EnsureBuffer(ref intermediaryBuffer, sampleCount);
-            this.output.Read(intermediaryBuffer, 0, sampleCount);
+
+            // If playback errors, we want to be able to shut down the engine to prevent deadlocks.
+            try
+            {
+                this.output.Read(intermediaryBuffer, 0, sampleCount);
+            }
+            catch (Exception ex)
+            {
+                playbackError = ex;
+                return StreamCallbackResult.Abort;
+            }
 
             // Copy the read samples to PortAudio's output.
             Marshal.Copy(intermediaryBuffer, 0, output, sampleCount);
@@ -86,12 +157,17 @@ namespace MonoStereo.Outputs
 
         public void Update()
         {
-            
+            if (playbackError != null)
+                throw playbackError;
         }
 
         public void Dispose()
         {
-            PlaybackStream.Dispose();
+            PlaybackStream?.Dispose();
+            PortAudio.Terminate();
+
+            PlaybackStream = null;
+            output = null;
         }
     }
 }
