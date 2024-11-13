@@ -16,8 +16,11 @@ namespace MonoStereo.Filters
             {
                 filterLock.Execute(() =>
                 {
-                    foreach (var filter in filters.Values)
-                        filter.SetHighPassFilter(AudioStandards.SampleRate, value, Q);
+                    if (value > 0)
+                    {
+                        foreach (var filter in filters.Values)
+                            filter.SetHighPassFilter(AudioStandards.SampleRate, value, Q);
+                    }
 
                     _cutoffFrequency = value;
                 });
@@ -49,6 +52,9 @@ namespace MonoStereo.Filters
 
         public override void PostProcess(float[] buffer, int offset, int samplesRead)
         {
+            if (_cutoffFrequency <= 0)
+                return;
+
             var filter = filters[Source];
 
             for (int i = 0; i < samplesRead; i++)
