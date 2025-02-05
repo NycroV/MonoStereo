@@ -81,7 +81,7 @@ namespace MonoStereo.Outputs
             int deviceIndex = DeviceIndex ?? PortAudio.DefaultOutputDevice;
             var deviceInfo = PortAudio.GetDeviceInfo(deviceIndex);
 
-            double latency = Latency ?? deviceInfo.defaultLowInputLatency;
+            double latency = Latency ?? deviceInfo.defaultLowOutputLatency;
 
             // Mix down to mono if the output only supports 1 channel.
             if (deviceInfo.maxOutputChannels == 1)
@@ -104,7 +104,7 @@ namespace MonoStereo.Outputs
                 hostApiSpecificStreamInfo = IntPtr.Zero // This is the equivalent of `state` for a Thread WaitCallback. We don't need it.
             };
 
-            // We use NoFlag here so that PortAudio can handle clipping and dithering for us. C is so much faster!
+            // We use NoFlag here so that PortAudio can handle clipping and dithering for us. C is faster!
             PlaybackStream = new(null, outputStreamFormat, AudioStandards.SampleRate, 0, StreamFlags.NoFlag, Callback, IntPtr.Zero);
 
             // The intermediary buffer is read into, and then marshalled to PortAudio.
