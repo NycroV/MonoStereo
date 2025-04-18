@@ -124,20 +124,23 @@ namespace MonoStereo.Structures
     {
         public FilterBase(MonoStereoProvider stereoProvider)
         {
-            provider = stereoProvider;
+            baseProvider = stereoProvider;
             Provider = stereoProvider;
         }
 
-        public readonly MonoStereoProvider provider;
+        public readonly MonoStereoProvider baseProvider;
 
         public override FilterPriority Priority => FilterPriority.ApplyFirst;
 
         public float Volume { get; set; } = 1f;
 
-        public override int ModifyRead(float[] buffer, int offset, int count) => provider.ReadSource(buffer, offset, count);
+        public override int ModifyRead(float[] buffer, int offset, int count) => baseProvider.ReadSource(buffer, offset, count);
 
         public override void PostProcess(float[] buffer, int offset, int samplesRead)
         {
+            if (Volume == 1f)
+                return;
+
             for (int i = offset; i < samplesRead; i++)
                 buffer[i] *= Volume;
         }
