@@ -61,7 +61,7 @@ protected override void Initialize()
 }
 ```
 
-As long as `YourCustomAmbientSoundType` inherits from `MonoStereoProvider`, the MonoStereo engine will set up a designated mixer for all of your ambient sounds to be played through. This is useful for things like changing only ambient sound volume, applying filters to all ambient sounds, etc.
+As long as `YourCustomAmbientSoundType` inherits from `MonoStereoProvider`, the MonoStereo engine will set up a designated mixer for all of your ambient sounds to be played through. This is useful for things like changing only ambient sound volume, applying filters to all ambient sounds, etc. For more information on adding your own audio types/mixers, see [Custom Sources](https://github.com/NycroV/MonoStereo/blob/master/docs/CUSTOM_SOURCES.md).
 
 Once the audio engine has been started, it's a good idea to incorporate `AudioManager.ThrowIfErrored()` somewhere into your game's update loop. This will forward any errors that might have been thrown from the audio thread to your main thread, allowing for easier debugging and possible deadlock prevention.
 
