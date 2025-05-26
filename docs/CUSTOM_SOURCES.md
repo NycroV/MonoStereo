@@ -1,9 +1,9 @@
 ## Custom Implementations
-MonoStereo supports custom implementations for songs, sounds, filters, and outputs. To use them, you can have classes inherit from `ISongSource`, `ISoundEffectSource`, `AudioFilter`, and `IMonoStereoOutput`.
+MonoStereo supports custom implementations for songs, sounds, custom audio types, filters, and outputs. To use them, you can have classes inherit from `ISongSource`, `ISoundEffectSource`, `MonoStereoProvider`, `AudioFilter`, and `IMonoStereoOutput` (respectively).
 You will *need* to provide a couple methods for each, and some more customization is optionally available through virtual overrides.
 
-#### `!!! IMPORTANT !!!`
-Audio reading/processing is done through 32-bit IEEE floating-point samples. If you are unfamiliar with the inner-workings of audio reading, it is recommended to stick with MonoStereo's supplied implementations - but if you would like to learn, [NAudio](https://github.com/naudio/NAudio/tree/master) has some great references to study from.
+> [!IMPORTANT]
+> Audio reading/processing is done through 32-bit IEEE floating-point samples. If you are unfamiliar with the inner-workings of audio reading, it is recommended to stick with MonoStereo's supplied implementations - but if you would like to learn, [NAudio](https://github.com/naudio/NAudio/tree/master) has some great references to study from.
 
 ### Songs/Sound Effects
 Song and sound sources use nearly identical code structure, but are separate to indicate how a source should be used.
@@ -20,6 +20,35 @@ public class MyCustomSoundEffectSource : ISoundEffectSource
 Song song = Song.Create(new MyCustomSongSource());
 SoundEffect sound = SoundEffect.Create(new MyCustomSoundEffectSource());
 ```
+
+### Custom Audio Types
+Sometimes, simply being able to organize your audio into sound effects or songs is not enough. Some games like to make a distinction between their regular sound effects and their ambient sound effects - some games like to have different kinds of music mixed together. Whatever it may be, MonoStereo knows that just 1 song mixer and just 1 sound mixer might not be enough. This is where custom audio types come in.
+
+Custom audio types allow you to further organize your audio into more mixers, allowing for access to distinct groups of audio sources. To create a new custom audio type, simply create a class that inherits from `MonoStereoProvider`. This class has a couple members you will need to implement, namely:
+- `WaveFormat`, which ensures to MonoStereo that you are playing audio in the correct format.
+- `PlaybackState`, which controls whether your audio should be playing, paused, or stopped.
+- `ReadSource(float[] buffer, int offset, int count)`, which should fill a buffer with audio data.
+- `Play()`, which should begin playback of your custom audio, and...
+- `RemoveInput()`, which should remove your input from its corresponding audio mixer.
+
+Before you begin implementing your custom audio type's members, you first need to register it with MonoStereo. You have two main options for this, and both are very easy:
+- Manually register your audio type after initialization with `AudioManager.AddAudioMixer<T>()`
+- Add your audio type as a parameter during engine initialization (as documented in [Setup](https://github.com/NycroV/MonoStereo/blob/master/docs/SETUP.md))
+
+If you decide to go with the first option, simply pass your custom audio type as the generic `T`.
+
+After registering your custom audio type, you will need to make sure that your audio makes it to the correct mixers. Somewhere inside your `Play()` method, you should add
+```cs
+AudioManager.AddInput<T>(T input);
+```
+And in the `RemoveInput()` method, you should add
+```cs
+AudioManager.RemoveInput<T>(T input);
+```
+
+In both of these methods, `T` should be the type that you previously registered. And just like that, you're done!
+
+If you want to simply create sub-sections of the `Song` or `SoundEffect` mixers, you can directly inherit from both of those classes, and all of the properties will be implemented for you. All you need to do is make sure that you then override `Play()` and `RemoveInput()` to target the correct mixers.
 
 ### Filters
 To create a custom filter, implement a class that inherits from `AudioFilter`. This class does not have any *required* methods, and if you leave the class empty, it will be a filter with no effects.
