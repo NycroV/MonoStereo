@@ -3,6 +3,7 @@ using MonoStereo.Sources.Sounds;
 using MonoStereo.Structures;
 using NAudio.Wave;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace MonoStereo
 {
@@ -10,11 +11,17 @@ namespace MonoStereo
     {
         #region Creation
 
+        [UsedImplicitly]
         public static SoundEffect Create(string fileName) => Create(new SoundEffectReader(fileName));
 
-        public static SoundEffect Create(CachedSoundEffect cachedSound) => Create(new CachedSoundEffectReader(cachedSound));
-
+        [UsedImplicitly]
         public static SoundEffect Create(ISoundEffectSource source) => new(source);
+        
+        [UsedImplicitly]
+        public static CachedSoundEffect Cache(string fileName) => new CachedSoundEffect(fileName);
+        
+        [UsedImplicitly]
+        public static SoundEffect Create(CachedSoundEffect cachedSound) => Create(new CachedSoundEffectReader(cachedSound));
 
         protected SoundEffect(ISoundEffectSource source)
         {

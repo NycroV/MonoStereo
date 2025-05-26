@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace MonoStereo
 {
@@ -26,6 +27,7 @@ namespace MonoStereo
 
         public long LoopEnd { get; private set; }
 
+        [UsedImplicitly]
         public CachedSoundEffect(string fileName)
         {
             using var fileReader = new SoundEffectFileReader(fileName);
@@ -45,6 +47,7 @@ namespace MonoStereo
             LoopEnd = loopEnd;
         }
 
+        [UsedImplicitly]
         public CachedSoundEffect(ISampleProvider source, string fileName = "", IDictionary<string, string> comments = null)
         {
             FileName = fileName;
@@ -96,8 +99,10 @@ namespace MonoStereo
             audioData.Clear();
         }
 
+        [UsedImplicitly]
         public SoundEffect GetInstance() => SoundEffect.Create(this);
 
+        [UsedImplicitly]
         public SoundEffect PlayInstance()
         {
             SoundEffect instance = SoundEffect.Create(this);

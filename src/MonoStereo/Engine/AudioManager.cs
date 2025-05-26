@@ -257,13 +257,13 @@ namespace MonoStereo
             {
                 foreach (var mixer in audioMixers.Values)
                 {
+                    List<MonoStereoProvider> inputs;
+                    
                     lock (mixer.MixerSources)
-                    {
-                        var inputs = mixer.MixerSources.Cast<MonoStereoProvider>().ToList();
-
-                        foreach (MonoStereoProvider input in inputs.Where(input => input.PlaybackState == PlaybackState.Stopped))
-                            input.RemoveInput();
-                    }
+                    { inputs = mixer.MixerSources.Cast<MonoStereoProvider>().ToList(); }
+                    
+                    foreach (MonoStereoProvider input in inputs.Where(input => input.PlaybackState == PlaybackState.Stopped))
+                        input.RemoveInput();
                 }
             }
         }

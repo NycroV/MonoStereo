@@ -11,10 +11,10 @@ namespace MonoStereo.Sources.Songs
     public class BufferedSongReader : ISongSource
     {
         #region Buffer Assets
-
-        private protected static readonly List<BufferedSongReader> bufferedReaders = [];
+        
         private protected static Thread readerThread { get; private set; }
         private protected readonly QueuedLock readerLock = new();
+        private protected static readonly List<BufferedSongReader> bufferedReaders = [];
 
         #endregion
 
@@ -51,8 +51,7 @@ namespace MonoStereo.Sources.Songs
         public readonly BufferedReader Reader;
 
         public WaveFormat WaveFormat => Source.WaveFormat;
-
-
+        
         public PlaybackState PlaybackState
         {
             get => Source.PlaybackState;
@@ -96,7 +95,7 @@ namespace MonoStereo.Sources.Songs
                 }
 
                 if (reader?.PlaybackState == PlaybackState.Playing)
-                    reader.readerLock.Execute(reader.Reader.ReadAhead);
+                    reader.readerLock.Execute(reader.Reader!.ReadAhead);
 
                 if (i >= bufferedReaders.Count - 1)
                     i = -1;
