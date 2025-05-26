@@ -36,7 +36,7 @@ namespace MonoStereo
         }
 
         /// <summary>
-        /// The active ouput for the MonoStereo engine.
+        /// The active output for the MonoStereo engine.
         /// </summary>
         public static IMonoStereoOutput Output { get; set; }
 
@@ -85,7 +85,7 @@ namespace MonoStereo
 
         /// <summary>
         /// Automatically adds an input to its corresponding mixer.<br/>
-        /// Only use this if you know what you are doing. Otherwise use <see cref="SoundEffect.Play"/> or <see cref="Song.Play"/> directly from the input.
+        /// Only use this if you know what you are doing. Otherwise, use <see cref="SoundEffect.Play"/> or <see cref="Song.Play"/> directly from the input.
         /// </summary>
         public static void AddInput<T>(T input)
             where T : MonoStereoProvider
@@ -95,7 +95,7 @@ namespace MonoStereo
 
         /// <summary>
         /// Automatically removes an input from its corresponding mixer.<br/>
-        /// Only use this if you know what you are doing. Otherwise use <see cref="SoundEffect.Stop"/> or <see cref="Song.Stop"/> directly from the input.
+        /// Only use this if you know what you are doing. Otherwise, use <see cref="SoundEffect.Stop"/> or <see cref="Song.Stop"/> directly from the input.
         /// </summary>
         public static void RemoveInput<T>(T input)
             where T : MonoStereoProvider
