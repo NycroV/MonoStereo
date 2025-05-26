@@ -3,7 +3,7 @@ using NVorbis.Contracts;
 using System;
 using System.Collections.Generic;
 
-namespace MonoStereo.SampleProviders
+namespace MonoStereo.Structures.SampleProviders
 {
     public class VorbisSampleProvider
     {

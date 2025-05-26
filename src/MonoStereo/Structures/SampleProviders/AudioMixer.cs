@@ -8,7 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using JetBrains.Annotations;
 
-namespace MonoStereo.SampleProviders
+namespace MonoStereo.Structures.SampleProviders
 {
     public class AudioMixer<T> : AudioMixer
         where T : ISampleProvider

@@ -3,7 +3,7 @@ using NAudio.Wave;
 using System;
 using System.Collections.Concurrent;
 
-namespace MonoStereo.SampleProviders
+namespace MonoStereo.Structures.SampleProviders
 {
     public class BufferedReader : ISampleProvider, IDisposable
     {

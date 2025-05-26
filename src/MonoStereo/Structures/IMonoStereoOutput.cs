@@ -1,4 +1,4 @@
-﻿using MonoStereo.SampleProviders;
+﻿using MonoStereo.Structures.SampleProviders;
 
 namespace MonoStereo.Structures
 {
