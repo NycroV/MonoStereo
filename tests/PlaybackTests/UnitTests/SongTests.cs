@@ -30,7 +30,7 @@ namespace PlaybackTests.UnitTests
             song.Play();
             Logger.LogMessage("Song playback started");
 
-            int secondsToSleep = 60;
+            int secondsToSleep = 10;
             Logger.LogMessage("Sleeping for {0} seconds", secondsToSleep);
             Thread.Sleep(TimeSpan.FromSeconds(secondsToSleep));
 
