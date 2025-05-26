@@ -243,7 +243,8 @@ namespace MonoStereo
                 
                 foreach (var mixer in audioMixers.Values)
                     mixer.Dispose();
-                
+
+                audioMixers.Clear();
                 IsRunning = false;
             }
         }
