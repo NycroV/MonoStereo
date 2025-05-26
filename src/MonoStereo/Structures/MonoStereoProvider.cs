@@ -16,21 +16,20 @@ namespace MonoStereo.Structures
         // This filter is generally not visible to end users, as removing it would cause issues.
         public virtual float Volume
         {
-            get => filterBase.Volume;
-            set => filterBase.Volume = value;
+            get => _filterBase.Volume;
+            set => _filterBase.Volume = value;
         }
 
-        private uint filterIndex = 0;
-
-        private readonly FilterBase filterBase;
+        private uint _filterIndex = 0;
+        private readonly FilterBase _filterBase;
 
         public MonoStereoProvider()
         {
-            filterBase = new(this);
-            AddFilter(filterBase);
+            _filterBase = new(this);
+            AddFilter(_filterBase);
         }
 
-        private readonly SortedSet<FilterEntry> filters = [];
+        private readonly SortedSet<FilterEntry> _filters = [];
 
         public virtual IEnumerable<AudioFilter> Filters
         {
@@ -38,7 +37,7 @@ namespace MonoStereo.Structures
             {
                 // Remove the FilterBase from the available filters
                 AudioFilter[] castFilters;
-                lock (filters) { castFilters = filters.Select(entry => entry.Filter).ToArray(); }
+                lock (_filters) { castFilters = _filters.Select(entry => entry.Filter).ToArray(); }
                 return castFilters.TakeLast(castFilters.Length - 1);
             }
         }
@@ -47,30 +46,32 @@ namespace MonoStereo.Structures
 
         public int Read(float[] buffer, int offset, int count)
         {
-            if (PlaybackState == PlaybackState.Playing)
+            switch (PlaybackState)
             {
-                lock (filters)
+                case PlaybackState.Playing:
                 {
-                    for (int i = 1; i < filters.Count; i++)
+                    lock (_filters)
                     {
-                        var entry = filters.ElementAt(i).Filter;
-                        entry.Provider = filters.ElementAt(i - 1).Filter;
-                        entry.Source = this;
+                        for (int i = 1; i < _filters.Count; i++)
+                        {
+                            var entry = _filters.ElementAt(i).Filter;
+                            entry.Provider = _filters.ElementAt(i - 1).Filter;
+                            entry.Source = this;
+                        }
+
+                        return _filters.Last().Filter.Read(buffer, offset, count);
                     }
-
-                    return filters.Last().Filter.Read(buffer, offset, count);
                 }
+                case PlaybackState.Paused:
+                {
+                    for (int i = 0; i < count; i++)
+                        buffer[offset + i] = 0;
+
+                    return count;
+                }
+                default:
+                    return 0;
             }
-
-            if (PlaybackState == PlaybackState.Paused)
-            {
-                for (int i = 0; i < count; i++)
-                    buffer[offset + i] = 0;
-
-                return count;
-            }
-
-            return 0;
         }
 
         public abstract int ReadSource(float[] buffer, int offset, int count);
@@ -80,20 +81,20 @@ namespace MonoStereo.Structures
             if (Filters.Contains(filter))
                 return;
 
-            lock (filters) { filters.Add(new(filter, filterIndex++)); }
+            lock (_filters) { _filters.Add(new(filter, _filterIndex++)); }
             filter.Apply(this);
         }
 
         public void RemoveFilter(AudioFilter filter)
         {
-            lock (filters) { filters.Remove(filters.FirstOrDefault(entry => entry.Filter == filter, null)); }
+            lock (_filters) { _filters.Remove(_filters.FirstOrDefault(entry => entry.Filter == filter, null)); }
             filter.Unapply(this);
         }
 
         // Remove every filter except for the FilterBase
         public void ClearFilters()
         {
-            foreach (var filter in Filters.ToArray())
+            foreach (AudioFilter filter in Filters.ToArray())
                 RemoveFilter(filter);
         }
 
@@ -105,15 +106,15 @@ namespace MonoStereo.Structures
 
         public virtual void Stop() => PlaybackState = PlaybackState.Stopped; 
 
-        public virtual void Close() { }
+        public virtual void RemoveInput() { }
 
         public virtual void Dispose()
         {
-            Close();
+            RemoveInput();
 
-            lock (filters)
+            lock (_filters)
             {
-                filters.Clear();
+                _filters.Clear();
             }
 
             GC.SuppressFinalize(this);
@@ -124,17 +125,17 @@ namespace MonoStereo.Structures
     {
         public FilterBase(MonoStereoProvider stereoProvider)
         {
-            baseProvider = stereoProvider;
+            BaseProvider = stereoProvider;
             Provider = stereoProvider;
         }
 
-        public readonly MonoStereoProvider baseProvider;
+        public readonly MonoStereoProvider BaseProvider;
 
         public override FilterPriority Priority => FilterPriority.ApplyFirst;
 
         public float Volume { get; set; } = 1f;
 
-        public override int ModifyRead(float[] buffer, int offset, int count) => baseProvider.ReadSource(buffer, offset, count);
+        public override int ModifyRead(float[] buffer, int offset, int count) => BaseProvider.ReadSource(buffer, offset, count);
 
         public override void PostProcess(float[] buffer, int offset, int samplesRead)
         {

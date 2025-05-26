@@ -2,11 +2,12 @@
 using MonoStereo.Outputs;
 using NAudio.Wave;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using MonoStereo.Structures;
 
 namespace MonoStereo
@@ -14,127 +15,115 @@ namespace MonoStereo
     public static class AudioManager
     {
         private static Thread AudioThread { get; set; }
-
+        
         public static bool IsRunning { get; private set; }
-
-        public static IMonoStereoOutput Output { get; set; }
-
-        public static AudioMixer SoundMixer { get; private set; }
-
-        public static AudioMixer MusicMixer { get; private set; }
-
-        public static AudioMixer MasterMixer { get; private set; }
-
-        /// <summary>
-        /// Controls the volume of sound effects
-        /// </summary>
-        public static float SoundEffectVolume
-        {
-            get => SoundMixer.Volume;
-            set => SoundMixer.Volume = value;
-        }
-
-        /// <summary>
-        /// Controls the volume of music
-        /// </summary>
-        public static float MusicVolume
-        {
-            get => MusicMixer.Volume;
-            set => MusicMixer.Volume = value;
-        }
-
-        /// <summary>
-        /// Controls the volume of the master output
-        /// </summary>
-        public static float MasterVolume
-        {
-            get => MasterMixer.Volume;
-            set => MasterMixer.Volume = value;
-        }
-
-        private static readonly List<Song> activeSongs = [];
-
-        private static readonly List<SoundEffect> activeSoundEffects = [];
-
-        public static ReadOnlyCollection<Song> ActiveSongs { get { lock (activeSongs) { return activeSongs.Cast<Song>().ToList().AsReadOnly(); } } }
-
-        public static ReadOnlyCollection<SoundEffect> ActiveSoundEffects { get { lock (activeSoundEffects) { return activeSoundEffects.Cast<SoundEffect>().ToList().AsReadOnly(); } } }
-
-        /// <summary>
-        /// Adds a song input to the mixer.<br/>
-        /// Instead of using this, use <see cref="Song.Play"/>
-        /// </summary>
-        public static void AddSongInput(Song song)
-        {
-            lock (activeSongs) { activeSongs.Add(song); }
-        }
-
-        /// <summary>
-        /// Removes a song input from the mixer.<br/>
-        /// Instead of using this, use <see cref="Song.Stop"/>
-        /// </summary>
-        public static void RemoveSongInput(Song song)
-        {
-            lock (activeSongs) { activeSongs.Remove(song); }
-        }
-
-        /// <summary>
-        /// Adds a sound effect input to the mixer.<br/>
-        /// Instead of using this, use <see cref="SoundEffect.Play"/>
-        /// </summary>
-        public static void AddSoundEffectInput(SoundEffect soundEffect)
-        {
-            lock (activeSoundEffects) { activeSoundEffects.Add(soundEffect); }
-        }
-
-        /// <summary>
-        /// Removes a sound effect input from the mixer.<br/>
-        /// Instead of using this, use <see cref="SoundEffect.Stop"/>
-        /// </summary>
-        public static void RemoveSoundInput(SoundEffect soundEffect)
-        {
-            lock (activeSoundEffects) { activeSoundEffects.Remove(soundEffect); }
-        }
-
+        
+        // Used to forward errors from the playback thread.
+        private static Exception _playbackError = null;
+        
         /// <summary>
         /// If an <see cref="Exception"/> was thrown by the playback thread, this method will throw that error again.<br/>
         /// This allows you to check for audio errors on the main thread.
         /// </summary>
+        [UsedImplicitly]
         public static void ThrowIfErrored()
         {
-            if (PlaybackError != null)
-                throw PlaybackError;
+            if (_playbackError != null)
+                throw _playbackError;
         }
 
-        // Used to forward errors from the playback thread.
-        private static Exception PlaybackError = null;
+        public static IMonoStereoOutput Output { get; set; }
+
+        private static readonly Dictionary<Type, AudioMixer> audioMixers = [];
+
+        public static AudioMixer<T> AudioMixers<T>()
+            where T : MonoStereoProvider
+        {
+            if (audioMixers.TryGetValue(typeof(T), out var mixer))
+                return (AudioMixer<T>)mixer;
+
+            return null;
+        }
+
+        public static void AddAudioMixer<T>(float defaultVolume)
+            where T : MonoStereoProvider
+        {
+            Type inputType = typeof(T);
+            AudioMixer<T> mixer = new(defaultVolume);
+            audioMixers[inputType] = mixer;
+            MasterMixer.AddInput(mixer);
+        }
+
+        public static void RemoveAudioMixer<T>()
+            where T : MonoStereoProvider
+        {
+            Type inputType = typeof(T);
+            var mixer = audioMixers[inputType];
+            MasterMixer.RemoveInput(mixer);
+            mixer.Dispose();
+        }
+
+        public static ReadOnlyCollection<T> ActiveInputs<T>()
+            where T : MonoStereoProvider 
+            => AudioMixers<T>().Inputs;
+
+        public static AudioMixer<AudioMixer> MasterMixer { get; private set; }
 
         /// <summary>
-        /// Initializes the MonoStereo Audio Engine. Note that using this method overload will default to WinMM as an output source.<br/>
-        /// If you would like to supply your own output source, use <see cref="InitializeCustomOutput(IMonoStereoOutput, Func{bool}, float, float, float)"/> instead.
+        /// Initializes the audio engine with basic mixers for <see cref="Song"/>s and <see cref="SoundEffect"/>s, and the default PortAudio output.
         /// </summary>
         /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
-        /// <param name="masterVolume">The master mixer volume</param>
-        /// <param name="musicVolume">The volume for music</param>
-        /// <param name="soundEffectVolume">The volume for sound effects</param>
+        /// <param name="masterVolume">The master mixer volume.</param>
+        /// <param name="musicVolume">The song mixer volume.</param>
+        /// <param name="soundEffectVolume">The sound effect mixer volume.</param>
+        /// <param name="deviceIndex">The index of the output device you would like to play to.</param>
         /// <param name="latency">The desired latency, in ms.<br/>
         /// Higher latency will create slightly delayed audio playback, but can help reduce laggy/choppy audio when lots of post-processing or filters are involved.<br/>
         /// 100ms-150ms is typically fine for most purposes.</param>
-        /// <param name="deviceNumber">The index of the output device you would like to play to.</param>
         public static void Initialize(
             Func<bool> shouldShutdown,
-
             float masterVolume = 1f,
             float musicVolume = 1f,
             float soundEffectVolume = 1f,
+            int? deviceIndex = null,
+            double? latency = null)
+        {
+            Initialize(
+                shouldShutdown,
+                masterVolume,
+                new() {[typeof(Song)] = musicVolume, [typeof(SoundEffect)] = soundEffectVolume},
+                deviceIndex,
+                latency);
+        }
 
+        /// <summary>
+        /// Initializes the MonoStereo Audio Engine. Note that using this method overload will default to PortAudio as an output source.<br/>
+        /// If you would like to supply your own output source, use <see cref="InitializeCustomOutput"/> instead.
+        /// </summary>
+        /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
+        /// <param name="masterVolume">The master mixer volume</param>
+        /// /// <param name="audioMixerTypesAndVolumes">The types for which you want to set up mixers in <see cref="AudioMixers{T}"/>. Must all inherit from <see cref="MonoStereoProvider"/>.<br/>
+        /// Correct format is: <code> {
+        ///     [Type] = volume,
+        ///     [Type] = volume,
+        ///     ....
+        /// }
+        /// </code> where all types inherit from <see cref="MonoStereoProvider"/></param>
+        /// /// <param name="deviceIndex">The index of the output device you would like to play to.</param>
+        /// <param name="latency">The desired latency, in ms.<br/>
+        /// Higher latency will create slightly delayed audio playback, but can help reduce laggy/choppy audio when lots of post-processing or filters are involved.<br/>
+        /// 100ms-150ms is typically fine for most purposes.</param>
+        public static void Initialize(
+            Func<bool> shouldShutdown,
+            float masterVolume,
+            Dictionary<Type, float> audioMixerTypesAndVolumes,
             int? deviceIndex = null,
             double? latency = null)
         {
             // Initialize to PortAudio output by default.
             // Passing in null utilizes the system defaults.
             PortAudioOutput output = DefaultOutput(deviceIndex, latency);
-            InitializeCustomOutput(output, shouldShutdown, masterVolume, musicVolume, soundEffectVolume);
+            InitializeCustomOutput(output, shouldShutdown, masterVolume, audioMixerTypesAndVolumes);
         }
 
         /// <summary>
@@ -152,35 +141,31 @@ namespace MonoStereo
         /// <param name="customOutput">The custom <see cref="IMonoStereoOutput"/> the audio engine should output to.</param>
         /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
         /// <param name="masterVolume">The master mixer volume</param>
-        /// <param name="musicVolume">The volume for music</param>
-        /// <param name="soundEffectVolume">The volume for sound effects</param>
+        /// <param name="audioMixerTypesAndVolumes">The types for which you want to set up mixers in <see cref="AudioMixers{T}"/>. Must all inherit from <see cref="MonoStereoProvider"/>.<br/>
+        /// Correct format is: <code> {
+        ///     [Type] = volume,
+        ///     [Type] = volume,
+        ///     ....
+        /// }
+        /// </code> where all types inherit from <see cref="MonoStereoProvider"/></param>
         public static void InitializeCustomOutput(
             IMonoStereoOutput customOutput,
             Func<bool> shouldShutdown,
-            
-            float masterVolume = 1f,
-            float musicVolume = 1f,
-            float soundEffectVolume = 1f)
+            float masterVolume,
+            [NotNull] Dictionary<Type, float> audioMixerTypesAndVolumes)
         {
-            SoundMixer = new(soundEffectVolume);
-            MusicMixer = new(musicVolume);
-            MasterMixer = new(masterVolume, SoundMixer, MusicMixer);
-
-            SoundMixer.Source.MixerInputEnded += (sender, e) =>
-            {
-                SoundEffect sound = e.SampleProvider as SoundEffect;
-                sound.Stop();
-            };
-
-            MusicMixer.Source.MixerInputEnded += (sender, e) =>
-            {
-                Song song = e.SampleProvider as Song;
-                song.Stop();
-            };
-
+            MasterMixer = new(masterVolume);
             Output = customOutput;
-
-            PlaybackError = null;
+            
+            var addMixerMethod = typeof(AudioManager).GetMethod(nameof(AddAudioMixer), BindingFlags.Static | BindingFlags.Public, [typeof(float)]);
+            
+            foreach ((Type type, float volume) in audioMixerTypesAndVolumes)
+            {
+                var addMixerGeneric = addMixerMethod!.MakeGenericMethod(type);
+                addMixerGeneric.Invoke(null, [volume]);
+            }
+            
+            _playbackError = null;
             Output.Init(MasterMixer);
 
             AudioThread = new(() => RunAudioThread(shouldShutdown)) { Priority = ThreadPriority.BelowNormal };
@@ -201,49 +186,41 @@ namespace MonoStereo
 
             catch (Exception ex)
             {
-                PlaybackError = ex;
+                _playbackError = ex;
             }
 
             finally
             {
                 // After the `shouldShutdown` function has returned true,
-                // commense shutdown. This is done in a way such that the engine
+                // commence shutdown. This is done in a way such that the engine
                 // COULD be started again without the need for program reload.
                 Output.Dispose();
                 MasterMixer.Dispose();
-                MusicMixer.Dispose();
-                SoundMixer.Dispose();
-
+                
+                foreach (var mixer in audioMixers.Values)
+                    mixer.Dispose();
+                
                 IsRunning = false;
             }
         }
 
         internal static void Update()
         {
-            static void UpdateInputs(AudioMixer mixer, IList newInputs)
+            Output.Update();
+
+            lock (audioMixers)
             {
-                // The .ToList() calls duplicate the sources so as not to
-                // cause enumeration errors
-                var inputs = mixer.MixerInputs.Cast<MonoStereoProvider>().ToList();
-
-                foreach (var input in inputs)
+                foreach (var mixer in audioMixers.Values)
                 {
-                    // Close() will remove the input from it's corresponding list,
-                    // so after this is called it will be removed from the mixer's inputs.
-                    if (input.PlaybackState == PlaybackState.Stopped)
-                        input.Close();
-                }
+                    lock (mixer.MixerSources)
+                    {
+                        var inputs = mixer.MixerSources.Cast<MonoStereoProvider>().ToList();
 
-                lock (newInputs)
-                {
-                    var sources = newInputs.Cast<ISampleProvider>();
-                    mixer.Source.SetMixerInputs(sources);
+                        foreach (MonoStereoProvider input in inputs.Where(input => input.PlaybackState == PlaybackState.Stopped))
+                            input.RemoveInput();
+                    }
                 }
             }
-
-            Output.Update();
-            UpdateInputs(MusicMixer, activeSongs);
-            UpdateInputs(SoundMixer, activeSoundEffects);
         }
     }
 }

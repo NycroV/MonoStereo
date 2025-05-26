@@ -3,6 +3,7 @@ using MonoStereo.Sources.Songs;
 using MonoStereo.Structures;
 using NAudio.Wave;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace MonoStereo
 {
@@ -14,17 +15,20 @@ namespace MonoStereo
         /// Creates a new Song from the file at the specified path, using an intermediary buffer to make sure samples are always cached in memory.
         /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
         /// </summary>
+        [UsedImplicitly]
         public static Song CreateBuffered(string fileName, float secondsToBuffer = 5f) => CreateBuffered(new SongReader(fileName), secondsToBuffer);
 
         /// <summary>
         /// Creates a new song with the specified source, using an intermediary buffer to make sure samples are always cached in memory.
         /// </summary>
+        [UsedImplicitly]
         public static Song CreateBuffered(ISongSource source, float secondsToBuffer = 5f) => Create(BufferedSongReader.Create(source, secondsToBuffer));
 
         /// <summary>
         /// Creates a new Song from the file at the specified path.
         /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
         /// </summary>
+        [UsedImplicitly]
         public static Song Create(string fileName) => Create(new SongReader(fileName));
 
         /// <summary>
@@ -71,8 +75,8 @@ namespace MonoStereo
         {
             PlaybackState = PlaybackState.Playing;
 
-            if (!AudioManager.ActiveSongs.Contains(this))
-                AudioManager.AddSongInput(this);
+            if (!AudioManager.AudioMixers<Song>().Inputs.Contains(this))
+                AudioManager.AudioMixers<Song>().AddInput(this);
 
             else if (Source is ISeekableSongSource seekableSongSource)
                 seekableSongSource.Position = 0;
@@ -91,18 +95,17 @@ namespace MonoStereo
             base.Resume();
             Source.OnResume();
         }
-
-        // Close will be called after a song is marked as stopped.
+        
         public override void Stop()
         {
             base.Stop();
             Source.OnStop();
         }
 
-        public override void Close()
+        public override void RemoveInput()
         {
-            AudioManager.RemoveSongInput(this);
-            Source.Close();
+            AudioManager.AudioMixers<Song>().RemoveInput(this);
+            Source.OnRemoveInput();
         }
     }
 }

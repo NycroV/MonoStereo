@@ -49,6 +49,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+		<PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
 		<PackageReference Include="NAudio.Core" Version="2.2.1" />
 		<PackageReference Include="PortAudioSharp2" Version="1.0.4" />
 		<PackageReference Include="z440.atl.core" Version="6.6.0" />

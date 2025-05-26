@@ -4,51 +4,92 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.Collections.Generic;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace MonoStereo.SampleProviders
 {
-    public class AudioMixer(float volume, params ISampleProvider[] initialInputs) : AudioMixer<ISampleProvider>(volume, initialInputs)
+    public class AudioMixer<T> : AudioMixer
+        where T : ISampleProvider
     {
+        public AudioMixer(float volume, params T[] initialInputs) : base(volume, initialInputs.Cast<ISampleProvider>())
+        {
+            Source.MixerInputEnded += (sender, args) =>
+            {
+                foreach (var callback in _inputEndedCallbacks)
+                    callback(sender, (T)args.SampleProvider);
+            };
+        }
+
+        public ReadOnlyCollection<T> Inputs
+        {
+            get
+            {
+                lock (MixerSources)
+                { return Source.MixerInputs.Cast<T>().ToList().AsReadOnly(); }
+            }
+        }
+
+        public void AddInput(T input) => Source.AddMixerInput(input);
+        
+        public void RemoveInput(T input) => Source.RemoveMixerInput(input);
+
+        public void SetMixerInputs(IEnumerable<T> inputs) => Source.SetMixerInputs(inputs.Cast<ISampleProvider>());
+        
+        public void ClearMixerInputs() => Source.ClearMixerInputs();
+        
+        /// <summary>
+        /// Raised when a mixer input has finished playback
+        /// </summary>
+        public event EventHandler<T> MixerInputEnded
+        {
+            add => _inputEndedCallbacks.Add(value);
+            remove => _inputEndedCallbacks.Remove(value);
+        }
+
+        private readonly List<EventHandler<T>> _inputEndedCallbacks = [];
     }
 
-    public class AudioMixer<T> : MonoStereoProvider where T : ISampleProvider
+    public class AudioMixer : MonoStereoProvider
     {
-        internal MixerSampleProvider Source { get; }
-
-        public IEnumerable<T> MixerInputs => Source.MixerInputs.Cast<T>();
+        protected MixerSampleProvider Source { get; }
+        
+        public List<ISampleProvider> MixerSources => Source.MixerInputs;
 
         public override WaveFormat WaveFormat => Source.WaveFormat;
 
         public override PlaybackState PlaybackState { get; set; } = PlaybackState.Playing;
 
-        public AudioMixer(float volume, params T[] initialInputs)
+        protected AudioMixer(float volume, IEnumerable<ISampleProvider> initialInputs)
         {
             Source = new(WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.SampleRate, AudioStandards.ChannelCount)) { ReadFully = true };
 
             Volume = volume;
 
-            Source.SetMixerInputs(initialInputs.Cast<ISampleProvider>());
+            Source.SetMixerInputs(initialInputs);
         }
 
-        public override void Play() => AudioManager.MasterMixer.AddInput(this);
-
-        public void AddInput(T sampleProvider) => Source.AddMixerInput(sampleProvider);
-
-        public void RemoveInput(T sampleProvider) => Source.RemoveMixerInput(sampleProvider);
-
+        public override void Play() => Resume();
+        
         public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);
 
-        public override void Close() => Source.Dispose();
+        public override void Dispose() => Source.Dispose();
 
         /// <summary>
         /// A sample provider mixer, allowing inputs to be added and removed
         /// </summary>
-        public class MixerSampleProvider : ISampleProvider, IDisposable
+        protected class MixerSampleProvider : ISampleProvider, IDisposable
         {
-            private readonly List<ISampleProvider> _sources;
-
+            [NotNull] private readonly List<ISampleProvider> _sources = [];
             private float[] _sourceBuffer;
+            
+            /// <summary>
+            /// Returns the mixer inputs (read-only - use AddMixerInput to add an input
+            /// </summary>
+            // ReSharper disable once InconsistentlySynchronizedField
+            // Intentional direct object reference.
+            public List<ISampleProvider> MixerInputs => _sources;
 
             /// <summary>
             /// Creates a new MixingSampleProvider, with no inputs, but a specified WaveFormat
@@ -60,7 +101,7 @@ namespace MonoStereo.SampleProviders
                 {
                     throw new ArgumentException("Mixer wave format must be IEEE float");
                 }
-                _sources = new();
+
                 WaveFormat = waveFormat;
             }
 
@@ -71,21 +112,9 @@ namespace MonoStereo.SampleProviders
             /// all be of the same WaveFormat. There must be at least one input</param>
             public MixerSampleProvider(IEnumerable<ISampleProvider> sources)
             {
-                _sources = new();
-                foreach (var source in sources)
-                {
-                    AddMixerInput(source);
-                }
-                if (_sources.Count == 0)
-                {
-                    throw new ArgumentException("Must provide at least one input in this constructor");
-                }
+                _sources = [];
+                SetMixerInputs(sources);
             }
-
-            /// <summary>
-            /// Returns the mixer inputs (read-only - use AddMixerInput to add an input
-            /// </summary>
-            public IEnumerable<ISampleProvider> MixerInputs => _sources;
 
             /// <summary>
             /// When set to true, the Read method always returns the number
@@ -94,7 +123,7 @@ namespace MonoStereo.SampleProviders
             /// makes this a never-ending sample provider, so take care if you plan
             /// to write it out to a file.
             /// </summary>
-            public bool ReadFully { get; set; }
+            public bool ReadFully { get; init; }
 
             /// <summary>
             /// Adds a new mixer input
@@ -102,17 +131,6 @@ namespace MonoStereo.SampleProviders
             /// <param name="mixerInput">Mixer input</param>
             public void AddMixerInput(ISampleProvider mixerInput)
             {
-                // we'll just call the lock around add since we are protecting against an AddMixerInput at
-                // the same time as a Read, rather than two AddMixerInput calls at the same time
-                lock (_sources)
-                {
-                    if (_sources.Count >= AudioStandards.MaxMixerInputs)
-                    {
-                        return;
-                    }
-
-                    _sources.Add(mixerInput);
-                }
                 if (WaveFormat == null)
                 {
                     WaveFormat = mixerInput.WaveFormat;
@@ -125,13 +143,20 @@ namespace MonoStereo.SampleProviders
                         throw new ArgumentException("All mixer inputs must have the same WaveFormat");
                     }
                 }
+                
+                // we'll just call the lock around add since we are protecting against an AddMixerInput at
+                // the same time as a Read, rather than two AddMixerInput calls at the same time
+                lock (_sources)
+                {
+                    if (_sources.Count >= AudioStandards.MaxMixerInputs)
+                    {
+                        return;
+                    }
+
+                    _sources.Add(mixerInput);
+                }
             }
-
-            /// <summary>
-            /// Raised when a mixer input has finished playback
-            /// </summary>
-            public event EventHandler<SampleProviderEventArgs> MixerInputEnded;
-
+            
             /// <summary>
             /// Removes a mixer input
             /// </summary>
@@ -143,7 +168,7 @@ namespace MonoStereo.SampleProviders
                     _sources.Remove(mixerInput);
                 }
             }
-
+            
             /// <summary>
             /// Sets the samples providers to be used by this mixer
             /// </summary>
@@ -160,7 +185,7 @@ namespace MonoStereo.SampleProviders
             /// <summary>
             /// Removes all mixer inputs
             /// </summary>
-            public void RemoveAllMixerInputs()
+            public void ClearMixerInputs()
             {
                 lock (_sources)
                 {
@@ -168,6 +193,11 @@ namespace MonoStereo.SampleProviders
                 }
             }
 
+            /// <summary>
+            /// Raised when a mixer input has finished playback
+            /// </summary>
+            public event EventHandler<SampleProviderEventArgs> MixerInputEnded;
+            
             /// <summary>
             /// The output WaveFormat of this sample provider
             /// </summary>
@@ -212,15 +242,14 @@ namespace MonoStereo.SampleProviders
                     }
                 }
                 // optionally ensure we return a full buffer
-                if (ReadFully && outputSamples < count)
-                {
-                    int outputIndex = offset + outputSamples;
-                    while (outputIndex < offset + count)
-                    {
-                        buffer[outputIndex++] = 0;
-                    }
-                    outputSamples = count;
-                }
+                if (!ReadFully || outputSamples >= count)
+                    return outputSamples;
+                
+                int outputIndex = offset + outputSamples;
+                while (outputIndex < offset + count)
+                    buffer[outputIndex++] = 0;
+                
+                outputSamples = count;
                 return outputSamples;
             }
 
@@ -228,18 +257,11 @@ namespace MonoStereo.SampleProviders
             {
                 lock (_sources)
                 {
-                    foreach (var source in _sources)
-                    {
-                        if (source is IDisposable disposable)
-                            disposable.Dispose();
-                    }
-
                     _sources.Clear();
+                    _sourceBuffer = null;
+                    WaveFormat = null;
                 }
-
-                _sourceBuffer = null;
-                WaveFormat = null;
-
+                
                 GC.SuppressFinalize(this);
             }
         }

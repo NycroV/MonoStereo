@@ -96,6 +96,6 @@ namespace MonoStereo.Sources.Songs
             return samplesCopied;
         }
 
-        public void Close() => OggReader.Dispose();
+        public void OnRemoveInput() => OggReader.Dispose();
     }
 }

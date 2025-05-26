@@ -55,8 +55,8 @@ namespace MonoStereo
         {
             PlaybackState = PlaybackState.Playing;
 
-            if (!AudioManager.ActiveSoundEffects.Contains(this))
-                AudioManager.AddSoundEffectInput(this);
+            if (!AudioManager.AudioMixers<SoundEffect>().Inputs.Contains(this))
+                AudioManager.AudioMixers<SoundEffect>().AddInput(this);
 
             else if (Source is ISeekableSoundEffectSource seekableSoundEffectSource)
                 seekableSoundEffectSource.Position = 0;
@@ -75,18 +75,17 @@ namespace MonoStereo
             base.Resume();
             Source.OnResume();
         }
-
-        // Close will be called after a song is marked as stopped.
+        
         public override void Stop()
         {
             base.Stop();
             Source.OnStop();
         }
 
-        public override void Close()
+        public override void RemoveInput()
         {
-            Source.Close();
-            AudioManager.RemoveSoundInput(this);
+            AudioManager.AudioMixers<SoundEffect>().RemoveInput(this);
+            Source.OnRemoveInput();
         }
     }
 }

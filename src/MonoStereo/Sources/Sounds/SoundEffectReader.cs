@@ -93,6 +93,6 @@ namespace MonoStereo.Sources.Sounds
             return samplesCopied;
         }
 
-        public void Close() => WavReader.Dispose();
+        public void OnRemoveInput() => WavReader.Dispose();
     }
 }

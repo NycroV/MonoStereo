@@ -69,10 +69,10 @@ namespace MonoStereo.Sources.Songs
 
         #endregion
 
-        public void Close()
+        public void OnRemoveInput()
         {
             Reader.Dispose();
-            Source.Close();
+            Source.OnRemoveInput();
         }
 
         public virtual int Read(float[] buffer, int offset, int count) => Reader.Read(buffer, offset, count);

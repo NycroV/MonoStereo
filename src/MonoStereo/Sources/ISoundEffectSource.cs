@@ -22,7 +22,7 @@ namespace MonoStereo.Sources
 
         public virtual void OnStop() { }
 
-        public abstract void Close();
+        public virtual void OnRemoveInput() { }
     }
 
     public interface ISeekableSoundEffectSource : ISoundEffectSource, ISeekable { }
