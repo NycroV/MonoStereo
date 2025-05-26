@@ -69,6 +69,7 @@ namespace MonoStereo.Structures
 
                     return count;
                 }
+                case PlaybackState.Stopped:
                 default:
                     return 0;
             }
@@ -104,9 +105,9 @@ namespace MonoStereo.Structures
 
         public virtual void Resume() => PlaybackState = PlaybackState.Playing;
 
-        public virtual void Stop() => PlaybackState = PlaybackState.Stopped; 
+        public virtual void Stop() => PlaybackState = PlaybackState.Stopped;
 
-        public virtual void RemoveInput() { }
+        public abstract void RemoveInput();
 
         public virtual void Dispose()
         {

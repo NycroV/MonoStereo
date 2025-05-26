@@ -74,6 +74,8 @@ namespace MonoStereo.SampleProviders
         
         public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);
 
+        public override void RemoveInput() => AudioManager.MasterMixer.RemoveInput(this);
+
         public override void Dispose() => Source.Dispose();
 
         /// <summary>
