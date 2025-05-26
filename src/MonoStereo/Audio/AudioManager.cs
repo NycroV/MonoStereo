@@ -16,6 +16,9 @@ namespace MonoStereo
     {
         private static Thread AudioThread { get; set; }
         
+        /// <summary>
+        /// Indicator for whether the MonoStereo audio engine is currently running.
+        /// </summary>
         public static bool IsRunning { get; private set; }
         
         // Used to forward errors from the playback thread.
@@ -32,10 +35,20 @@ namespace MonoStereo
                 throw _playbackError;
         }
 
+        /// <summary>
+        /// The active ouput for the MonoStereo engine.
+        /// </summary>
         public static IMonoStereoOutput Output { get; set; }
 
+        /// <summary>
+        /// A collection of audio mixers accessible by the types of inputs they mix.
+        /// </summary>
         private static readonly Dictionary<Type, AudioMixer> audioMixers = [];
 
+        /// <summary>
+        /// Use this to retrieve the mixer for all objects of type <see cref="T"/>.<br/>
+        /// Common uses would be changing the volume of the mixer for all <see cref="Song"/>s or <see cref="SoundEffect"/>s.
+        /// </summary>
         public static AudioMixer<T> AudioMixers<T>()
             where T : MonoStereoProvider
         {
@@ -45,15 +58,22 @@ namespace MonoStereo
             return null;
         }
 
-        public static void AddAudioMixer<T>(float defaultVolume)
+        /// <summary>
+        /// Registers a new audio mixer for which audio played from objects of type <see cref="T"/> will be mixed.
+        /// </summary>
+        public static AudioMixer<T> AddAudioMixer<T>(float defaultVolume)
             where T : MonoStereoProvider
         {
             Type inputType = typeof(T);
             AudioMixer<T> mixer = new(defaultVolume);
             audioMixers[inputType] = mixer;
             MasterMixer.AddInput(mixer);
+            return mixer;
         }
 
+        /// <summary>
+        /// De-registers and disposes the audio mixer for which audio from objects of type <see cref="T"/> were played.
+        /// </summary>
         public static void RemoveAudioMixer<T>()
             where T : MonoStereoProvider
         {
@@ -63,6 +83,30 @@ namespace MonoStereo
             mixer.Dispose();
         }
 
+        /// <summary>
+        /// Automatically adds an input to its corresponding mixer.<br/>
+        /// Only use this if you know what you are doing. Otherwise use <see cref="SoundEffect.Play"/> or <see cref="Song.Play"/> directly from the input.
+        /// </summary>
+        public static void AddInput<T>(T input)
+            where T : MonoStereoProvider
+        {
+            AudioMixers<T>().AddInput(input);
+        }
+
+        /// <summary>
+        /// Automatically removes an input from its corresponding mixer.<br/>
+        /// Only use this if you know what you are doing. Otherwise use <see cref="SoundEffect.Stop"/> or <see cref="Song.Stop"/> directly from the input.
+        /// </summary>
+        public static void RemoveInput<T>(T input)
+            where T : MonoStereoProvider
+        {
+            AudioMixers<T>().RemoveInput(input);
+        }
+        
+        /// <summary>
+        /// Gets all actively mixing inputs of type <see cref="T"/>.<br/>
+        /// Common uses are iterating through the list of active <see cref="SoundEffect"/>s or <see cref="Song"/>s.
+        /// </summary>
         public static ReadOnlyCollection<T> ActiveInputs<T>()
             where T : MonoStereoProvider 
             => AudioMixers<T>().Inputs;
@@ -174,7 +218,7 @@ namespace MonoStereo
             IsRunning = true;
         }
 
-        internal static void RunAudioThread(Func<bool> shouldShutdown)
+        private static void RunAudioThread(Func<bool> shouldShutdown)
         {
             try
             {
@@ -204,7 +248,7 @@ namespace MonoStereo
             }
         }
 
-        internal static void Update()
+        private static void Update()
         {
             Output.Update();
 

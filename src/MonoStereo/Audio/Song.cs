@@ -34,6 +34,7 @@ namespace MonoStereo
         /// <summary>
         /// Creates a new song with the specified source.
         /// </summary>
+        [UsedImplicitly]
         public static Song Create(ISongSource source) => new(source);
 
         protected Song(ISongSource source)
@@ -71,12 +72,15 @@ namespace MonoStereo
 
         public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);
 
+        /// <summary>
+        /// Begins playback of this <see cref="Song"/>. Will restart playback if this song is seekable.
+        /// </summary>
         public override void Play()
         {
             PlaybackState = PlaybackState.Playing;
 
-            if (!AudioManager.AudioMixers<Song>().Inputs.Contains(this))
-                AudioManager.AudioMixers<Song>().AddInput(this);
+            if (!AudioManager.ActiveInputs<Song>().Contains(this))
+                AudioManager.AddInput<Song>(this);
 
             else if (Source is ISeekableSongSource seekableSongSource)
                 seekableSongSource.Position = 0;
@@ -84,24 +88,37 @@ namespace MonoStereo
             Source.OnPlay();
         }
 
+        /// <summary>
+        /// Pauses this <see cref="Song"/>. This will remain as an active input in the song mixer, but will not play any audio until resumed.
+        /// </summary>
         public override void Pause()
         {
             base.Pause();
             Source.OnPause();
         }
 
+        /// <summary>
+        /// Resumes this <see cref="Song"/> if it is paused.
+        /// </summary>
         public override void Resume()
         {
             base.Resume();
             Source.OnResume();
         }
         
+        /// <summary>
+        /// Stops this <see cref="Song"/>. This does not immediately remove it from the mixer - but does mark it for removal on the next audio thread update.<br/>
+        /// To immediately remove this sobg from the mixer, use <see cref="RemoveInput"/> instead.
+        /// </summary>
         public override void Stop()
         {
             base.Stop();
             Source.OnStop();
         }
 
+        /// <summary>
+        /// Removes this <see cref="Song"/> from the active audio mixer.
+        /// </summary>
         public override void RemoveInput()
         {
             AudioManager.AudioMixers<Song>().RemoveInput(this);

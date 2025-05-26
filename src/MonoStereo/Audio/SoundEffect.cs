@@ -51,12 +51,15 @@ namespace MonoStereo
 
         public override int ReadSource(float[] buffer, int offset, int count) => Source.Read(buffer, offset, count);
 
+        /// <summary>
+        /// Begins playback of this <see cref="SoundEffect"/>. Will restart playback if this sound effect is seekable.
+        /// </summary>
         public override void Play()
         {
             PlaybackState = PlaybackState.Playing;
 
-            if (!AudioManager.AudioMixers<SoundEffect>().Inputs.Contains(this))
-                AudioManager.AudioMixers<SoundEffect>().AddInput(this);
+            if (!AudioManager.ActiveInputs<SoundEffect>().Contains(this))
+                AudioManager.AddInput<SoundEffect>(this);
 
             else if (Source is ISeekableSoundEffectSource seekableSoundEffectSource)
                 seekableSoundEffectSource.Position = 0;
@@ -64,24 +67,37 @@ namespace MonoStereo
             Source.OnPlay();
         }
 
+        /// <summary>
+        /// Pauses this <see cref="SoundEffect"/>. This will remain as an active input in the sound effect mixer, but will not play any audio until resumed.
+        /// </summary>
         public override void Pause()
         {
             base.Pause();
             Source.OnPause();
         }
 
+        /// <summary>
+        /// Resumes this <see cref="SoundEffect"/> if it is paused.
+        /// </summary>
         public override void Resume()
         {
             base.Resume();
             Source.OnResume();
         }
         
+        /// <summary>
+        /// Stops this <see cref="SoundEffect"/>. This does not immediately remove it from the mixer - but does mark it for removal on the next audio thread update.<br/>
+        /// To immediately remove this sound effect from the mixer, use <see cref="RemoveInput"/> instead.
+        /// </summary>
         public override void Stop()
         {
             base.Stop();
             Source.OnStop();
         }
 
+        /// <summary>
+        /// Removes this <see cref="SoundEffect"/> from the active audio mixer.
+        /// </summary>
         public override void RemoveInput()
         {
             AudioManager.AudioMixers<SoundEffect>().RemoveInput(this);
