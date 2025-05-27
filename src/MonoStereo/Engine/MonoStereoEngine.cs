@@ -12,14 +12,15 @@ using MonoStereo.Structures;
 
 namespace MonoStereo
 {
-    public static class AudioManager
+    public static class MonoStereoEngine
     {
-        private static Thread AudioThread { get; set; }
-        
         /// <summary>
         /// Indicator for whether the MonoStereo audio engine is currently running.
         /// </summary>
         public static bool IsRunning { get; private set; }
+     
+        // Continuously calls updates to the audio ouput.
+        private static Thread _audioThread = null;
         
         // Used to forward errors from the playback thread.
         private static Exception _playbackError = null;
@@ -201,7 +202,7 @@ namespace MonoStereo
             MasterMixer = new(masterVolume);
             Output = customOutput;
             
-            var addMixerMethod = typeof(AudioManager).GetMethod(nameof(AddAudioMixer), BindingFlags.Static | BindingFlags.Public, [typeof(float)]);
+            var addMixerMethod = typeof(MonoStereoEngine).GetMethod(nameof(AddAudioMixer), BindingFlags.Static | BindingFlags.Public, [typeof(float)]);
             
             foreach ((Type type, float volume) in audioMixerTypesAndVolumes)
             {
@@ -212,8 +213,8 @@ namespace MonoStereo
             _playbackError = null;
             Output.Init(MasterMixer);
 
-            AudioThread = new(() => RunAudioThread(shouldShutdown)) { Priority = ThreadPriority.BelowNormal };
-            AudioThread.Start();
+            _audioThread = new(() => RunAudioThread(shouldShutdown)) { Priority = ThreadPriority.BelowNormal };
+            _audioThread.Start();
 
             IsRunning = true;
         }

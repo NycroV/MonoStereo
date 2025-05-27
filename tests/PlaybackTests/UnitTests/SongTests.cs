@@ -20,7 +20,7 @@ namespace PlaybackTests.UnitTests
         {
             ShutdownEngine = false;
 
-            AudioManager.Initialize(() => ShutdownEngine, 1f, 1f, 1f);
+            MonoStereoEngine.Initialize(() => ShutdownEngine, 1f, 1f, 1f);
             Logger.LogMessage("Audio engine initialized");
 
             string songPath = $"{CompiledAssets}/Navigating";

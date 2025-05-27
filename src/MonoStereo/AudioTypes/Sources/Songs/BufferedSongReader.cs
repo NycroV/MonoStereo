@@ -80,7 +80,7 @@ namespace MonoStereo.Sources.Songs
         {
             for (int i = 0; i < bufferedReaders.Count; i++)
             {
-                if (!AudioManager.IsRunning)
+                if (!MonoStereoEngine.IsRunning)
                     break;
 
                 var reader = bufferedReaders[i];

@@ -10,7 +10,7 @@ namespace MonoStereo.Structures
         /// <summary>
         /// Sets up your output to get ready to start playing. You should not start the actual playback here, only prepare for playback.
         /// </summary>
-        /// <param name="masterMixer">This is <see cref="AudioManager.MasterMixer"/>. All of your audio reading calls<br/>
+        /// <param name="masterMixer">This is <see cref="MonoStereoEngine.MasterMixer"/>. All of your audio reading calls<br/>
         /// should use this, calling the Read() method whenever you need to fill buffers.</param>
         void Init(AudioMixer masterMixer);
 

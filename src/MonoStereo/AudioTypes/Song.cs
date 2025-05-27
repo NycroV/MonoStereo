@@ -79,8 +79,8 @@ namespace MonoStereo
         {
             PlaybackState = PlaybackState.Playing;
 
-            if (!AudioManager.ActiveInputs<Song>().Contains(this))
-                AudioManager.AddInput<Song>(this);
+            if (!MonoStereoEngine.ActiveInputs<Song>().Contains(this))
+                MonoStereoEngine.AddInput<Song>(this);
 
             else if (Source is ISeekableSongSource seekableSongSource)
                 seekableSongSource.Position = 0;
@@ -121,7 +121,7 @@ namespace MonoStereo
         /// </summary>
         public override void RemoveInput()
         {
-            AudioManager.AudioMixers<Song>().RemoveInput(this);
+            MonoStereoEngine.AudioMixers<Song>().RemoveInput(this);
             Source.OnRemoveInput();
         }
     }
