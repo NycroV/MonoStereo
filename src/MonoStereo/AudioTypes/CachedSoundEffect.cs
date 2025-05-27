@@ -93,6 +93,7 @@ namespace MonoStereo
             }
             while (samplesRead > 0);
 
+            WaveFormat = source.WaveFormat;
             AudioData = audioData.ToArray();
             Comments = comments?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
 

@@ -7,7 +7,7 @@
 		<Authors>Nycro</Authors>
 		<Company>$(AssemblyName)</Company>
 		<Description>An custom audio engine built using NAudio and PortAudio.</Description>
-		<Version>2.0.4</Version>
+		<Version>2.0.5</Version>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<ApplicationIcon>Icon.ico</ApplicationIcon>
