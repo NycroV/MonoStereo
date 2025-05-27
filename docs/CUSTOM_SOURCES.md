@@ -32,18 +32,18 @@ Custom audio types allow you to further organize your audio into more mixers, al
 - `RemoveInput()`, which should remove your input from its corresponding audio mixer.
 
 Before you begin implementing your custom audio type's members, you first need to register it with MonoStereo. You have two main options for this, and both are very easy:
-- Manually register your audio type after initialization with `AudioManager.AddAudioMixer<T>()`
+- Manually register your audio type after initialization with `MonoStereoEngine.AddAudioMixer<T>()`
 - Add your audio type as a parameter during engine initialization (as documented in [Setup](https://github.com/NycroV/MonoStereo/blob/master/docs/SETUP.md))
 
 If you decide to go with the first option, simply pass your custom audio type as the generic `T`.
 
 After registering your custom audio type, you will need to make sure that your audio makes it to the correct mixers. Somewhere inside your `Play()` method, you should add
 ```cs
-AudioManager.AddInput<T>(T input);
+MonoStereoEngine.AddInput<T>(T input);
 ```
 And in the `RemoveInput()` method, you should add
 ```cs
-AudioManager.RemoveInput<T>(T input);
+MonoStereoEngine.RemoveInput<T>(T input);
 ```
 
 In both of these methods, `T` should be the type that you previously registered. And just like that, you're done!
@@ -75,11 +75,11 @@ To create a custom audio output implementation, you can have a class implement t
 Within this interface, you will need to implement a total of 4 methods, and one property:
 - `Init(AudioMixer waveProvider)` - This is called when the audio engine is initialized. `waveProvider` is the engine's master mixer, from which you can call `Read()` to gather audio data.
 - `Play()` - Called when the audio engine starts. You should begin reading from the master mixer and playing to the output here.
-- `Update()` - A method that is called once after every successive update chain in the audio engine. This is typically called very rapidly. You can update your output here. If your playback thread throws any errors, you can throw them again here and forward error reporting to your main thread via `AudioManager.ThrowIfErrored()`.
+- `Update()` - A method that is called once after every successive update chain in the audio engine. This is typically called very rapidly. You can update your output here. If your playback thread throws any errors, you can throw them again here and forward error reporting to your main thread via `MonoStereoEngine.ThrowIfErrored()`.
 - `Dispose()` - Called when the audio engine is shutting down. Dispose your resources here.
 
 After implementing all of the above, all you need to do is pass your custom output to the engine on startup!
 ```cs
 MyCustomOutput output = new();
-AudioManager.InitializeCustomOutput(output);
+MonoStereoEngine.InitializeCustomOutput(output);
 ```
