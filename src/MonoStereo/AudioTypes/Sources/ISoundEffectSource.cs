@@ -1,10 +1,11 @@
-﻿using MonoStereo.Structures;
+﻿using System;
+using MonoStereo.Structures;
 using NAudio.Wave;
 using System.Collections.Generic;
 
 namespace MonoStereo.Sources
 {
-    public interface ISoundEffectSource : ISampleProvider
+    public interface ISoundEffectSource : ISampleProvider, IDisposable
     {
         public virtual ISoundEffectSource BaseSource { get => this; }
 

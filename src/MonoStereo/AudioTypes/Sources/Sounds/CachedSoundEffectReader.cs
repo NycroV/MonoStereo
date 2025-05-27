@@ -73,6 +73,7 @@ namespace MonoStereo.Sources.Sounds
             return samplesCopied;
         }
 
-        public void OnRemoveInput() { }
+        public void Dispose()
+        { }
     }
 }

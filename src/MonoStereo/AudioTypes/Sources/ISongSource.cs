@@ -1,10 +1,11 @@
-﻿using MonoStereo.Structures;
+﻿using System;
+using MonoStereo.Structures;
 using NAudio.Wave;
 using System.Collections.Generic;
 
 namespace MonoStereo.Sources
 {
-    public interface ISongSource : ISampleProvider
+    public interface ISongSource : ISampleProvider, IDisposable
     {
         public virtual ISongSource BaseSource { get => this; }
 

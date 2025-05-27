@@ -68,13 +68,13 @@ namespace MonoStereo.Sources.Songs
 
         #endregion
 
-        public void OnRemoveInput()
+        public virtual int Read(float[] buffer, int offset, int count) => Reader.Read(buffer, offset, count);
+
+        public void Dispose()
         {
             Reader.Dispose();
-            Source.OnRemoveInput();
+            Source.Dispose();
         }
-
-        public virtual int Read(float[] buffer, int offset, int count) => Reader.Read(buffer, offset, count);
 
         private static void CacheBuffers()
         {

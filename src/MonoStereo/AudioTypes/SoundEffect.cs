@@ -110,5 +110,11 @@ namespace MonoStereo
             MonoStereoEngine.AudioMixers<SoundEffect>().RemoveInput(this);
             Source.OnRemoveInput();
         }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            Source.Dispose();
+        }
     }
 }
