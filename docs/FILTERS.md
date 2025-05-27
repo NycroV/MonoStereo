@@ -34,9 +34,9 @@ speed.Speed = 0.4f;
 ```
 If you want to apply a filter to every instance of a song or sound, rather than individually applying it to each one, apply it to the respective mixer:
 ```cs
-AudioManager.MusicMixer.AddFilter(filter);
-AudioManager.SoundMixer.AddFilter(filter);
-AudioManager.MasterMixer.AddFilter(filter);
+MonoStereoEngine.AudioMixers<Song>().AddFilter(filter);
+MonoStereoEngine.AudioMixers<SoundEffect>().AddFilter(filter);
+MonoStereoEngine.MasterMixer.AddFilter(filter);
 ```
 > Note: since filters are reference types, in order to remove them, you will need to keep track of your filter's object instance.
 
