@@ -27,7 +27,7 @@ namespace MonoStereo.Structures.SampleProviders
             get
             {
                 lock (MixerSources)
-                { return Source.MixerInputs.Cast<T>().ToList().AsReadOnly(); }
+                { return Source.MixerInputs.Cast<T>().ToArray().AsReadOnly(); }
             }
         }
 
