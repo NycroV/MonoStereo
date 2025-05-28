@@ -54,6 +54,7 @@ namespace MonoStereo.Sources.Songs
         public SongReader(string fileName)
         {
             string filePath = $"{fileName}.xnb";
+            
             if (!File.Exists(filePath))
                 throw new ArgumentException($"Specified file not found! - {filePath}");
 

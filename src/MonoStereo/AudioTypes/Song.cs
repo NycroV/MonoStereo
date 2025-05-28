@@ -16,7 +16,7 @@ namespace MonoStereo
         /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
         /// </summary>
         [UsedImplicitly]
-        public static Song CreateBuffered(string fileName, float secondsToBuffer = 5f) => CreateBuffered(new SongReader(fileName), secondsToBuffer);
+        public static Song CreateBuffered(string fileName, float secondsToBuffer = 5f) => CreateBuffered(new UniversalAudioSource(fileName), secondsToBuffer);
 
         /// <summary>
         /// Creates a new song with the specified source, using an intermediary buffer to make sure samples are always cached in memory.
@@ -29,7 +29,7 @@ namespace MonoStereo
         /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
         /// </summary>
         [UsedImplicitly]
-        public static Song Create(string fileName) => Create(new SongReader(fileName));
+        public static Song Create(string fileName) => Create(new UniversalAudioSource(fileName));
 
         /// <summary>
         /// Creates a new song with the specified source.
