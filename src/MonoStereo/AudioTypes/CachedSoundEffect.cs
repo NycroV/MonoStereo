@@ -26,9 +26,12 @@ namespace MonoStereo
         public long LoopStart { get; private set; }
 
         public long LoopEnd { get; private set; }
+        
+        [UsedImplicitly]
+        public static CachedSoundEffect Create(string fileName) => new(fileName);
 
         [UsedImplicitly]
-        public CachedSoundEffect(string fileName)
+        protected CachedSoundEffect(string fileName)
         {
             using var fileReader = new SoundEffectFileReader(fileName);
 

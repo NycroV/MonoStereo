@@ -18,10 +18,10 @@ namespace MonoStereo
         public static SoundEffect Create(ISoundEffectSource source) => new(source);
         
         [UsedImplicitly]
-        public static CachedSoundEffect Cache(string fileName) => new CachedSoundEffect(fileName);
+        public static SoundEffect Create(CachedSoundEffect cachedSound) => Create(new CachedSoundEffectReader(cachedSound));
         
         [UsedImplicitly]
-        public static SoundEffect Create(CachedSoundEffect cachedSound) => Create(new CachedSoundEffectReader(cachedSound));
+        public static CachedSoundEffect Cache(string fileName) => CachedSoundEffect.Create(fileName);
 
         protected SoundEffect(ISoundEffectSource source)
         {

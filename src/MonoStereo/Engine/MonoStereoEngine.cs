@@ -219,6 +219,18 @@ namespace MonoStereo
             IsRunning = true;
         }
 
+        /// <summary>
+        /// Resets <see cref="Output"/> to use the given parameters if it is a <see cref="PortAudioOutput"/> (the default output type).<br/>
+        /// Setting either field to <see langword="null"/> will use the system defaults.
+        /// </summary>
+        public static void ResetOutput(int? deviceIndex, double? latency = null)
+        {
+            if (Output is not PortAudioOutput output)
+                throw new Exception("Output is not PortAudioOutput.\nIf you are implementing your own output type, cast MonoStereoEngine.Output to your implementation and modify it there.");
+            
+            output.ResetOuput(deviceIndex, latency);
+        }
+
         private static void RunAudioThread(Func<bool> shouldShutdown)
         {
             try
