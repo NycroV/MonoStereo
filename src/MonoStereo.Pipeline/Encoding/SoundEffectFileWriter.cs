@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
 using MonoStereo.Pipeline;
+using MonoStereo.Sources;
 using System.IO;
 
 namespace MonoStereo.Decoding
@@ -7,7 +8,7 @@ namespace MonoStereo.Decoding
     public class SoundEffectFileWriter
     {
         public string FileName { get; set; }
-        public AudioFileReader Reader { get; set; }
+        public UniversalAudioSource Reader { get; set; }
         public ContentBuildLogger Logger { get; set; }
 
         public void WriteToWav(NAudio.Wave.ISampleProvider inputStream, Stream outputStream)

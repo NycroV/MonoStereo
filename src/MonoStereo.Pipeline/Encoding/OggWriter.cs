@@ -4,6 +4,7 @@ using OggVorbisEncoder;
 using System;
 using System.IO;
 using Microsoft.Xna.Framework;
+using MonoStereo.Sources;
 
 namespace MonoStereo.Decoding
 {
@@ -11,7 +12,7 @@ namespace MonoStereo.Decoding
     {
         public string FileName { get; set; }
 
-        public AudioFileReader Reader { get; set; }
+        public UniversalAudioSource Reader { get; set; }
 
         public ContentBuildLogger Logger { get; set; }
 

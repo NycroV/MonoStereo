@@ -19,6 +19,7 @@ namespace MonoStereo.Pipeline
             long length = stream.Length;
             stream.Position = 0;
 
+            value.Reader.IsLooped = false;
             ISampleProvider resampleSource = value.Reader;
 
             if (resampleSource.WaveFormat.SampleRate != AudioStandards.SampleRate)
@@ -27,8 +28,7 @@ namespace MonoStereo.Pipeline
             if (resampleSource.WaveFormat.Channels != AudioStandards.ChannelCount)
                 resampleSource = new MonoToStereoSampleProvider(resampleSource);
 
-            WdlResamplingSampleProvider resampler = new(resampleSource, AudioStandards.SampleRate);
-            value.WriteToOgg(resampler, stream);
+            value.WriteToOgg(resampleSource, stream);
 
             if (stream.Position < length)
                 stream.SetLength(stream.Position);
