@@ -13,14 +13,12 @@ namespace PlaybackTests.UnitTests
 
         const string RawAssets = $"{Assets}/Raw";
 
-        static bool ShutdownEngine = false;
-
         [TestMethod]
         public void PlaySong()
         {
-            ShutdownEngine = false;
+            bool shutDownEngine = false;
 
-            MonoStereoEngine.Initialize(() => ShutdownEngine, 1f, 1f, 1f);
+            MonoStereoEngine.Initialize(() => shutDownEngine, 1f, 1f, 1f);
             Logger.LogMessage("Audio engine initialized");
 
             string songPath = $"{CompiledAssets}/Navigating";
@@ -35,7 +33,36 @@ namespace PlaybackTests.UnitTests
             Thread.Sleep(TimeSpan.FromSeconds(secondsToSleep));
 
             Logger.LogMessage("Sleep finished - shutting down engine");
-            ShutdownEngine = true;
+            shutDownEngine = true;
+
+            while (MonoStereoEngine.IsRunning)
+                Thread.Sleep(100);
+        }
+
+        [TestMethod]
+        public void PlaySoundEffect()
+        {
+            bool shutDownEngine = false;
+
+            MonoStereoEngine.Initialize(() => shutDownEngine, 1f, 1f, 1f);
+            Logger.LogMessage("Audio engine initialized");
+
+            string soundPath = $"{CompiledAssets}/Mumble";
+            SoundEffect sound = SoundEffect.Create(soundPath);
+            Logger.LogMessage("Sound effect {0} loaded", soundPath);
+
+            sound.Play();
+            Logger.LogMessage("Sound effect playback started");
+
+            int secondsToSleep = 4;
+            Logger.LogMessage("Sleeping for {0} seconds", secondsToSleep);
+            Thread.Sleep(TimeSpan.FromSeconds(secondsToSleep));
+
+            Logger.LogMessage("Sleep finished - shutting down engine");
+            shutDownEngine = true;
+
+            while (MonoStereoEngine.IsRunning)
+                Thread.Sleep(100);
         }
     }
 }

@@ -185,6 +185,7 @@ namespace MonoStereo.Outputs
         {
             PlaybackStream?.Dispose();
             PortAudio.Terminate();
+            _portAudioInitialized = false;
 
             PlaybackStream = null;
             _output = null;

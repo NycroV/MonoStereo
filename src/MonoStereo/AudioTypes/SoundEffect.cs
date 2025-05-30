@@ -16,7 +16,7 @@ namespace MonoStereo
         /// If the passed in file path does not have a file extension, MonoStereo will assume you have run the file through the content pipeline and append .xnb to the end.
         /// </summary>
         [UsedImplicitly]
-        public static SoundEffect Create(string fileName) => Create(new UniversalAudioSource(fileName));
+        public static SoundEffect Create(string fileName) => Create(new UniversalAudioSource(fileName, true));
 
         /// <summary>
         /// Creates a new <see cref="SoundEffect"/> with the specified source.
