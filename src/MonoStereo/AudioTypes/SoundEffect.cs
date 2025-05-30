@@ -11,15 +11,26 @@ namespace MonoStereo
     {
         #region Creation
 
+        /// <summary>
+        /// Creates a new <see cref="CachedSoundEffect"/> from the file at the specified path.<br/>
+        /// If the passed in file path does not have a file extension, MonoStereo will assume you have run the file through the content pipeline and append .xnb to the end.
+        /// </summary>
         [UsedImplicitly]
-        public static SoundEffect Create(string fileName) => Create(new SoundEffectReader(fileName));
+        public static SoundEffect Create(string fileName) => Create(new UniversalAudioSource(fileName));
 
+        /// <summary>
+        /// Creates a new <see cref="SoundEffect"/> with the specified source.
+        /// </summary>
         [UsedImplicitly]
         public static SoundEffect Create(ISoundEffectSource source) => new(source);
         
+        /// <summary>
+        /// Creates a new <see cref="SoundEffect"/> from a given <see cref="CachedSoundEffect"/>.
+        /// </summary>
         [UsedImplicitly]
         public static SoundEffect Create(CachedSoundEffect cachedSound) => Create(new CachedSoundEffectReader(cachedSound));
-        
+
+        /// <inheritdoc cref="CachedSoundEffect.Create(string)"/>
         [UsedImplicitly]
         public static CachedSoundEffect Cache(string fileName) => CachedSoundEffect.Create(fileName);
 
@@ -68,7 +79,7 @@ namespace MonoStereo
             if (!MonoStereoEngine.ActiveInputs<SoundEffect>().Contains(this))
                 MonoStereoEngine.AddInput<SoundEffect>(this);
 
-            else if (Source is ISeekableSoundEffectSource seekableSoundEffectSource)
+            else if (Source is ISeekable seekableSoundEffectSource)
                 seekableSoundEffectSource.Position = 0;
 
             Source.OnPlay();

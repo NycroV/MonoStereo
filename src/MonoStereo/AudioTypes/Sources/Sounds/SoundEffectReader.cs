@@ -10,7 +10,12 @@ namespace MonoStereo.Sources.Sounds
 {
     // This is essentually just a wrapper on the MonoStereo SoundEffectFileReader,
     // with support for automatic looping.
-    public class SoundEffectReader : ISeekableSoundEffectSource, ILoopTags
+
+    /// <summary>
+    /// The default <see cref="ISoundEffectSource"/> implementation.<br/>
+    /// Only use this if you have run your files through the MonoGame content pipeline.
+    /// </summary>
+    public sealed class SoundEffectReader : ISeekableSoundEffectSource, ILoopTags
     {
         #region Metadata
 
@@ -50,12 +55,8 @@ namespace MonoStereo.Sources.Sounds
 
         public SoundEffectReader(string fileName)
         {
-            string filePath = $"{fileName}.xnb";
-            if (!File.Exists(filePath))
-                throw new ArgumentException($"Specified file not found! - {filePath}");
-
             FileName = fileName;
-            WavReader = new(filePath);
+            WavReader = new(File.OpenRead(fileName));
 
             Comments = WavReader.Comments.ToDictionary();
             Comments.ParseLoop(out long loopStart, out long loopEnd, WaveFormat.Channels);

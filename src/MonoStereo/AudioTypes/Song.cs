@@ -12,27 +12,27 @@ namespace MonoStereo
         #region Creation
 
         /// <summary>
-        /// Creates a new Song from the file at the specified path, using an intermediary buffer to make sure samples are always cached in memory.
-        /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
+        /// Creates a new <see cref="Song"/> from the file at the specified path, using an intermediary buffer to make sure samples are always cached in memory.<br/>
+        /// If the passed in file path does not have a file extension, MonoStereo will assume you have run the file through the content pipeline and append .xnb to the end.
         /// </summary>
         [UsedImplicitly]
         public static Song CreateBuffered(string fileName, float secondsToBuffer = 5f) => CreateBuffered(new UniversalAudioSource(fileName), secondsToBuffer);
 
         /// <summary>
-        /// Creates a new song with the specified source, using an intermediary buffer to make sure samples are always cached in memory.
+        /// Creates a new <see cref="Song"/> with the specified source, using an intermediary buffer to make sure samples are always cached in memory.
         /// </summary>
         [UsedImplicitly]
         public static Song CreateBuffered(ISongSource source, float secondsToBuffer = 5f) => Create(BufferedSongReader.Create(source, secondsToBuffer));
 
         /// <summary>
-        /// Creates a new Song from the file at the specified path.
-        /// Note: this will only work if the file has been compiled by MonoStereo's pipeline tool, or is a .ogg file.
+        /// Creates a new <see cref="Song"/> from the file at the specified path.<br/>
+        /// If the passed in file path does not have a file extension, MonoStereo will assume you have run the file through the content pipeline and append .xnb to the end.
         /// </summary>
         [UsedImplicitly]
         public static Song Create(string fileName) => Create(new UniversalAudioSource(fileName));
 
         /// <summary>
-        /// Creates a new song with the specified source.
+        /// Creates a new <see cref="Song"/> with the specified source.
         /// </summary>
         [UsedImplicitly]
         public static Song Create(ISongSource source) => new(source);
@@ -82,7 +82,7 @@ namespace MonoStereo
             if (!MonoStereoEngine.ActiveInputs<Song>().Contains(this))
                 MonoStereoEngine.AddInput<Song>(this);
 
-            else if (Source is ISeekableSongSource seekableSongSource)
+            else if (Source is ISeekable seekableSongSource)
                 seekableSongSource.Position = 0;
 
             Source.OnPlay();

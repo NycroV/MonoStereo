@@ -9,7 +9,12 @@ namespace MonoStereo.Sources.Songs
 {
     // This is essentially just a wrapper on an OggReader, with support for automatic looping.
     // MonoStereo song files are compiled as OggFiles by default.
-    public class SongReader : ISeekableSongSource, ILoopTags
+
+    /// <summary>
+    /// The default <see cref="ISongSource"/> implementation.<br/>
+    /// Only use this if you have run your files through the MonoGame content pipeline.
+    /// </summary>
+    public sealed class SongReader : ISeekableSongSource, ILoopTags
     {
         #region Metadata
 
@@ -53,14 +58,9 @@ namespace MonoStereo.Sources.Songs
 
         public SongReader(string fileName)
         {
-            string filePath = $"{fileName}.xnb";
-            
-            if (!File.Exists(filePath))
-                throw new ArgumentException($"Specified file not found! - {filePath}");
-
             FileName = fileName;
+            OggReader = new(fileName);
 
-            OggReader = new(filePath);
             Comments = OggReader.Comments.ComposeComments();
             Comments.ParseLoop(out long loopStart, out long loopEnd, WaveFormat.Channels);
 

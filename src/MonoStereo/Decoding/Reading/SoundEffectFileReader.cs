@@ -9,11 +9,9 @@ namespace MonoStereo.Decoding
 {
     // Provides a way to read raw, uncompressed samples from a stream that is preceded by comments.
     // This custom structure is used by the sound effect compiler in the pipeline.
-    public class SoundEffectFileReader : ISampleProvider, ISeekable, IDisposable
+    public class SoundEffectFileReader : WaveStream, ISampleProvider, ISeekable, IDisposable
     {
-        public string FileName { get; private set; }
-
-        public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.SampleRate, AudioStandards.ChannelCount);
+        public override WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(AudioStandards.SampleRate, AudioStandards.ChannelCount);
 
         public BinaryReader Stream { get; private set; }
 
@@ -24,25 +22,20 @@ namespace MonoStereo.Decoding
         /// <summary>
         /// Length of the stream, in samples.
         /// </summary>
-        public long Length => (Stream.BaseStream.Length - bufferOffset) / AudioStandards.BytesPerSample;
+        public override long Length => (Stream.BaseStream.Length - bufferOffset) / AudioStandards.BytesPerSample;
 
         /// <summary>
         /// Current sample position of the stream.
         /// </summary>
-        public long Position
+        public override long Position
         {
             get => (Stream.BaseStream.Position - bufferOffset) / AudioStandards.BytesPerSample;
             set => Stream.BaseStream.Position = (value * AudioStandards.BytesPerSample) + bufferOffset;
         }
 
-        public SoundEffectFileReader(string fileName)
+        public SoundEffectFileReader(Stream fileStream)
         {
-            string filePath = $"{fileName}.xnb";
-            if (!File.Exists(filePath))
-                throw new ArgumentException($"Specified file not found! - {filePath}");
-
-            FileName = fileName;
-            Stream = new(File.OpenRead(filePath));
+            Stream = new(fileStream);
 
             Dictionary<string, string> comments = [];
             int commentCount = Stream.ReadInt32();
@@ -65,9 +58,10 @@ namespace MonoStereo.Decoding
             return samplesToCopy;
         }
 
-        public void Dispose()
+        public override int Read(byte[] buffer, int offset, int count) => Stream.Read(buffer, offset, count);
+
+        public new void Dispose()
         {
-            FileName = null;
             Stream.Close();
             Comments = null;
 

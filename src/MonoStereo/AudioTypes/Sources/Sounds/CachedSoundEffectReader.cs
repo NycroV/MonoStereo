@@ -6,7 +6,10 @@ using System.Linq;
 
 namespace MonoStereo.Sources.Sounds
 {
-    public class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ISeekableSoundEffectSource, ILoopTags
+    /// <summary>
+    /// An <see cref="ISoundEffectSource"/> implementation that reads data from a given <see cref="MonoStereo.CachedSoundEffect"/>.
+    /// </summary>
+    public sealed class CachedSoundEffectReader(CachedSoundEffect cachedSound) : ISeekableSoundEffectSource, ILoopTags
     {
         #region Metadata
 

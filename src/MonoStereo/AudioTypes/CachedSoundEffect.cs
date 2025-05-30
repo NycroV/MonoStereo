@@ -7,12 +7,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using JetBrains.Annotations;
+using System.IO;
+using MonoStereo.Sources;
 
 namespace MonoStereo
 {
-    // The cached sound effect provides a way to load a sound into memory for extremely performance-effective
-    // playback at the cost of some memory overhead. In cases where a sound is expected to be played multiple
-    // times, this solution is typically far more effective than opening a new file stream for each instance.
+    /// <summary>
+    /// The <see cref="CachedSoundEffect"/> provides a way to load a sound into memory for extremely performance-effective  playback at the cost of some memory overhead.<br/>
+    /// <br/>
+    /// In cases where a sound is expected to be played multiple times, this solution is typically far more effective than opening a new file stream for each instance.
+    /// </summary>
     public class CachedSoundEffect : ILoopTags, IDisposable
     {
         public string FileName { get; private set; }
@@ -23,68 +27,35 @@ namespace MonoStereo
 
         public float[] AudioData { get; private set; }
 
+        public long Length { get; private set; }
+
         public long LoopStart { get; private set; }
 
         public long LoopEnd { get; private set; }
-        
-        [UsedImplicitly]
-        public static CachedSoundEffect Create(string fileName) => new(fileName);
 
+        /// <summary>
+        /// Creates a new <see cref="CachedSoundEffect"/> from the file at the specified path.<br/>
+        /// If the passed in file path does not have a file extension, MonoStereo will assume you have run the file through the content pipeline and append .xnb to the end.
+        /// </summary>
         [UsedImplicitly]
-        protected CachedSoundEffect(string fileName)
+        public static CachedSoundEffect Create(string fileName)
         {
-            using var fileReader = new SoundEffectFileReader(fileName);
-
-            FileName = fileName;
-            WaveFormat = fileReader.WaveFormat;
-
-            var buffer = new float[fileReader.Length];
-            fileReader.Read(buffer, 0, buffer.Length);
-
-            AudioData = buffer;
-            Comments = fileReader.Comments;
-
-            Comments.ParseLoop(out long loopStart, out long loopEnd, WaveFormat.Channels);
-
-            LoopStart = loopStart;
-            LoopEnd = loopEnd;
+            var source = new UniversalAudioSource(fileName, true);
+            return new(source, source.FileName, source.Comments);
         }
 
         [UsedImplicitly]
-        public CachedSoundEffect(ISampleProvider source, string fileName = "", IDictionary<string, string> comments = null)
+        protected CachedSoundEffect(ISampleProvider source, string fileName = "", IDictionary<string, string> comments = null)
         {
             FileName = fileName;
+            comments.ParseLoop(out long loopStart, out long loopEnd, AudioStandards.ChannelCount);
 
             int samplesRead;
             float[] buffer = new float[AudioStandards.ReadBufferSize];
             List<float> audioData = [];
-            comments.ParseLoop(out long loopStart, out long loopEnd, AudioStandards.ChannelCount);
 
-            if (source.WaveFormat.SampleRate != AudioStandards.SampleRate)
-            {
-                float scalar = AudioStandards.SampleRate / (float)source.WaveFormat.SampleRate;
-                source = new WdlResamplingSampleProvider(source, AudioStandards.SampleRate);
-
-                if (loopStart >= 0)
-                {
-                    loopStart = (long)(loopStart * scalar);
-                    loopStart -= loopStart % source.WaveFormat.Channels;
-                }
-
-                if (loopEnd >= 0)
-                {
-                    loopEnd = (long)(loopEnd * scalar);
-                    loopEnd -= loopEnd % source.WaveFormat.Channels;
-                }
-            }
-
-            if (source.WaveFormat.Channels != AudioStandards.ChannelCount)
-            {
-                if (source.WaveFormat.Channels != 1)
-                    throw new ArgumentException("Source must be in either stereo or mono!", nameof(source));
-
-                source = new MonoToStereoSampleProvider(source);
-            }
+            long lengthPlaceholder = 0;
+            source = UniversalAudioSource.Reformat(source, ref loopStart, ref loopEnd, ref lengthPlaceholder);
 
             LoopStart = loopStart;
             LoopEnd = loopEnd;
@@ -98,6 +69,8 @@ namespace MonoStereo
 
             WaveFormat = source.WaveFormat;
             AudioData = audioData.ToArray();
+
+            Length = AudioData.LongLength;
             Comments = comments?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
 
             audioData.Clear();

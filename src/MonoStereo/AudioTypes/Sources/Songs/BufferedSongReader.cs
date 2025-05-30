@@ -6,7 +6,8 @@ using System.Threading;
 namespace MonoStereo.Sources.Songs
 {
     /// <summary>
-    /// Reads a song a configurable amount of seconds ahead of time into memory to offload expensive IO operations to a background thread.
+    /// An <see cref="ISongSource"/> implementation that reads data from a separate <see cref="ISongSource"/>.<br/>
+    /// A configurable amount of seconds ahead of time are cached into memory to offload expensive IO operations to a background thread.
     /// </summary>
     public class BufferedSongReader : ISongSource
     {
@@ -26,7 +27,7 @@ namespace MonoStereo.Sources.Songs
             return new BufferedSongReader(source, secondsToHold);
         }
 
-        internal BufferedSongReader(ISongSource source, float secondsToHold = 5f)
+        protected BufferedSongReader(ISongSource source, float secondsToHold = 5f)
         {
             Source = source;
             Reader = new(source, secondsToHold);
@@ -104,9 +105,11 @@ namespace MonoStereo.Sources.Songs
     }
 
     /// <summary>
-    /// Reads a song a configurable amount of seconds ahead of time into memory to offload expensive IO operations to a background thread.<br/>
+    /// An <see cref="ISongSource"/> implementation that reads data from a separate <see cref="ISongSource"/>.<br/>
+    /// A configurable amount of seconds ahead of time are cached into memory to offload expensive IO operations to a background thread.<br/>
     /// <br/>
-    /// IMPORTANT: The <see cref="Position"/> property is NOT guaranteed to be accurate to the position of the underlying reader, as this encapsulator reads ahead of time.<br/>
+    /// IMPORTANT:<br/>
+    /// The <see cref="Position"/> property is NOT guaranteed to be accurate to the position of the underlying reader, as this encapsulator reads ahead of time.<br/>
     /// It should be accurate before any looping occurs, but after that it will display as if it is one continuous reader, not a looped read.<br/>
     /// If you need this value to be accurate, it is recommended to implement some of your own logic to guarantee accuracy.
     /// </summary>

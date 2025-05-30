@@ -9,8 +9,8 @@ namespace MonoStereo;
 public sealed class QueuedLock
 {
     private readonly object _innerLock = new();
-    private volatile int _ticketsCount = 0;
-    private volatile int _ticketToRide = 1;
+    private volatile uint _ticketsCount = 0;
+    private volatile uint _ticketToRide = 1;
 
     /// <summary>
     /// Manually enters this <see cref="QueuedLock"/> state.<br/>
@@ -18,7 +18,7 @@ public sealed class QueuedLock
     /// </summary>
     public void Enter()
     {
-        int myTicket = Interlocked.Increment(ref _ticketsCount);
+        uint myTicket = Interlocked.Increment(ref _ticketsCount);
         Monitor.Enter(_innerLock);
 
         while (true)

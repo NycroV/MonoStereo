@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ATL;
 using MonoStereo.Decoding;
 using MonoStereo.Sources.Songs;
@@ -17,12 +18,13 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
     
     private readonly WaveStream _waveStream;
     private readonly LoopingReader _loopingReader;
-    private ISampleProvider _source;
+    private readonly ISampleProvider _source;
 
     #endregion
 
     #region  Public Data
-    
+
+    public string FileName { get; init; }
     public WaveFormat WaveFormat => _source.WaveFormat;
 
     public PlaybackState PlaybackState { get; set; }
@@ -33,19 +35,25 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
 
     public UniversalAudioSource(string fileName, bool useSoundEffectDecoderForXnb = false)
     {
-        
         if (string.IsNullOrEmpty(Path.GetExtension(fileName)))
             fileName += ".xnb";
 
         string fileExtension = Path.GetExtension(fileName);
         Stream fileStream = File.OpenRead(fileName);
+        FileName = fileName;
 
         switch (fileExtension)
         {
             case ".xnb":
                 _waveStream = useSoundEffectDecoderForXnb ?
-                    new SoundEffectReader(fileStream) :
+                    new SoundEffectFileReader(fileStream) :
                     new OggReader(fileStream);
+
+                Comments = useSoundEffectDecoderForXnb ?
+                    ((SoundEffectFileReader)_waveStream).Comments.ToDictionary() :
+                    ((OggReader)_waveStream).Comments.ComposeComments();
+
+                break;
             
             case ".ogg":
                 var stream = new OggReader(fileStream);
@@ -73,16 +81,12 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
         long sourceLength = _loopingReader.Length;
 
         // Resampled reading
-        long scaledLoopStart = loopStart;
-        long scaledLoopEnd = loopEnd;
-        long scaledLength = sourceLength;
-
-        _source = Reformat(_loopingReader, ref scaledLoopStart, ref scaledLoopEnd, ref scaledLength);
+        _source = Reformat(_loopingReader, ref loopStart, ref loopEnd, ref sourceLength);
         _sampleScalar = (float)_loopingReader.WaveFormat.SampleRate / _source.WaveFormat.SampleRate;
 
-        LoopStart = scaledLoopStart;
-        LoopEnd = scaledLoopEnd;
-        Length = scaledLength;
+        LoopStart = loopStart;
+        LoopEnd = loopEnd;
+        Length = sourceLength;
     }
     
     public long Position
@@ -115,7 +119,6 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
 
     public void Dispose()
     {
-        _source = null;
         _waveStream?.Dispose();
         GC.SuppressFinalize(this);
     }
@@ -206,7 +209,7 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
 
         public WaveFormat WaveFormat => OutputSource.WaveFormat;
         
-        private readonly QueuedLock _seekLock = new();
+        private readonly object _seekLock = new();
 
         public long LoopStart { get; set; } = loopStart;
 
@@ -219,19 +222,15 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
             get
             {
                 long value = 0;
-                _seekLock.Execute(() =>
-                {
-                    value = WaveSource.Position / WaveSource.WaveFormat.BlockAlign * WaveSource.WaveFormat.Channels;
-                });
+                lock (_seekLock)
+                { value = WaveSource.Position / WaveSource.WaveFormat.BlockAlign * WaveSource.WaveFormat.Channels; }
                 return value;
             }
 
             set
             {
-                _seekLock.Execute(() =>
-                {
-                    WaveSource.Position = value / WaveSource.WaveFormat.Channels * WaveSource.WaveFormat.BlockAlign;
-                });
+                lock (_seekLock)
+                { WaveSource.Position = value / WaveSource.WaveFormat.Channels * WaveSource.WaveFormat.BlockAlign; }
             }
         }
 
@@ -241,7 +240,6 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
         {
             int samplesCopied = 0;
 
-            _seekLock.Execute(() => {
                 do
                 {
                     long endIndex = Length;
@@ -263,7 +261,6 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
                         Position = startIndex;
                     }
                 } while (IsLooped && samplesCopied < count);
-            });
 
             return samplesCopied;
         }
