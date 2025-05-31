@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using ATL;
 using MonoStereo.Decoding;
@@ -24,59 +25,30 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
 
     #region  Public Data
 
-    public string FileName { get; init; }
+    public string FileName { get; init; } = "";
     public WaveFormat WaveFormat => _source.WaveFormat;
 
     public PlaybackState PlaybackState { get; set; }
     public Dictionary<string, string> Comments { get; }
-    public bool IsLooped { get; set; }
-    
+    public bool IsLooped { get => _loopingReader.IsLooped; set => _loopingReader.IsLooped = value; }
+
     #endregion
 
-    public UniversalAudioSource(string fileName, bool useSoundEffectDecoderForXnb = false)
+    public UniversalAudioSource(string fileName, bool useSoundEffectDecoderForXnb = false) :
+        this(File.OpenRead(fileName), Path.GetExtension(fileName), fileName, useSoundEffectDecoderForXnb)
+    { }
+
+    public UniversalAudioSource(Stream fileStream, string extension, string fileName = "", bool useSoundEffectDecoderForXnb = false) :
+        this(GetWaveStream(fileStream, extension, useSoundEffectDecoderForXnb, out var comments), fileName, comments)
+    { }
+
+    public UniversalAudioSource(WaveStream waveStream, string fileName = "", IDictionary<string, string> comments = null)
     {
-        if (string.IsNullOrEmpty(Path.GetExtension(fileName)))
-            fileName += ".xnb";
-
-        string fileExtension = Path.GetExtension(fileName);
-        Stream fileStream = File.OpenRead(fileName);
         FileName = fileName;
-
-        switch (fileExtension)
-        {
-            case ".xnb":
-                _waveStream = useSoundEffectDecoderForXnb ?
-                    new SoundEffectFileReader(fileStream) :
-                    new OggReader(fileStream);
-
-                Comments = useSoundEffectDecoderForXnb ?
-                    ((SoundEffectFileReader)_waveStream).Comments.ToDictionary() :
-                    ((OggReader)_waveStream).Comments.ComposeComments();
-
-                break;
-            
-            case ".ogg":
-                var stream = new OggReader(fileStream);
-                _waveStream = stream;
-                Comments = stream.Comments.ComposeComments();
-                break;
-
-            case ".wav":
-                Comments = ReadComments(fileStream);
-                _waveStream = new WaveFileReader(fileStream);
-                break;
-
-            case ".mp3":
-                Comments = ReadComments(fileStream);
-                _waveStream = new Mp3Reader(fileStream);
-                break;
-
-            default:
-                throw new FileLoadException($"Unknown audio extension {fileExtension}");
-        }
-        
+        Comments = comments.ToDictionary();
         Comments.ParseLoop(out long loopStart, out long loopEnd, AudioStandards.ChannelCount);
 
+        _waveStream = waveStream;
         _loopingReader = new(_waveStream, loopStart, loopEnd);
         long sourceLength = _loopingReader.Length;
 
@@ -122,12 +94,60 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
         _waveStream?.Dispose();
         GC.SuppressFinalize(this);
     }
-    
+
     #region Provider Standardization
-    
-    // Converts an ISampleProvider of any formatting (sample rate or channels) to
-    // a standardized, 44.1kHz 2 channel stream. Also modifies loopStart and loopEnd
-    // tags to account for sample size adjustment.
+
+    /// <summary>
+    /// Gets a <see cref="WaveStream"/> from the given <paramref name="fileStream"/> using the specified extension to determine decoding.<br/>
+    /// No extension will attempt to use the default MonoStereo decoding (determined by <paramref name="useSoundEffectDecoderForXnb"/>).
+    /// </summary>
+    public static WaveStream GetWaveStream(Stream fileStream, string extension, bool useSoundEffectDecoderForXnb, out Dictionary<string, string> comments)
+    {
+        if (string.IsNullOrEmpty(extension))
+            extension = ".xnb";
+
+        WaveStream waveStream;
+
+        switch (extension)
+        {
+            case ".xnb":
+                waveStream = useSoundEffectDecoderForXnb ?
+                    new SoundEffectFileReader(fileStream) :
+                    new OggReader(fileStream);
+
+                comments = useSoundEffectDecoderForXnb ?
+                    ((SoundEffectFileReader)waveStream).Comments.ToDictionary() :
+                    ((OggReader)waveStream).Comments.ComposeComments();
+
+                break;
+
+            case ".ogg":
+                var stream = new OggReader(fileStream);
+                waveStream = stream;
+                comments = stream.Comments.ComposeComments();
+                break;
+
+            case ".wav":
+                comments = ReadComments(fileStream);
+                waveStream = new WaveFileReader(fileStream);
+                break;
+
+            case ".mp3":
+                comments = ReadComments(fileStream);
+                waveStream = new Mp3Reader(fileStream);
+                break;
+
+            default:
+                throw new FileLoadException($"Unknown audio extension {extension}");
+        }
+
+        return waveStream;
+    }
+
+    /// <summary>
+    /// Converts an ISampleProvider of any formatting (sample rate or channels) to a standardized, 44.1kHz 2 channel stream.<br/>
+    /// Also modifies loopStart and loopEnd tags to account for sample size adjustment.
+    /// </summary>
     public static ISampleProvider Reformat(ISampleProvider provider, ref long loopStart, ref long loopEnd, ref long length)
     {
         if (provider.WaveFormat.SampleRate != AudioStandards.SampleRate)

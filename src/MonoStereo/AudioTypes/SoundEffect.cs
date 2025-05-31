@@ -34,6 +34,11 @@ namespace MonoStereo
         [UsedImplicitly]
         public static CachedSoundEffect Cache(string fileName) => CachedSoundEffect.Create(fileName);
 
+        /// <inheritdoc cref="CachedSoundEffect.Create(ISampleProvider, string, IDictionary{string, string})"/>
+        [UsedImplicitly]
+        public static CachedSoundEffect Create(ISampleProvider source, string fileName = "", IDictionary<string, string> comments = null) =>
+            CachedSoundEffect.Create(source, fileName, comments);
+
         protected SoundEffect(ISoundEffectSource source)
         {
             Source = source;

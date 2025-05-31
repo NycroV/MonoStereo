@@ -41,7 +41,16 @@ namespace MonoStereo
         public static CachedSoundEffect Create(string fileName)
         {
             var source = new UniversalAudioSource(fileName, true);
-            return new(source, source.FileName, source.Comments);
+            return CachedSoundEffect.Create(source, fileName, source.Comments);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="CachedSoundEffect"/> from the given <see cref="ISampleProvider"/>, with the attached <paramref name="fileName"/> and <paramref name="comments"/> as metadata.
+        /// </summary>
+        [UsedImplicitly]
+        public static CachedSoundEffect Create(ISampleProvider source, string fileName = "", IDictionary<string, string> comments = null)
+        {
+            return new CachedSoundEffect(source, fileName, comments);
         }
 
         [UsedImplicitly]
