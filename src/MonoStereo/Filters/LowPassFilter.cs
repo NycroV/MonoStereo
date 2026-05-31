@@ -52,7 +52,7 @@ namespace MonoStereo.Filters
 
         public override void PostProcess(float[] buffer, int offset, int samplesRead)
         {
-            if (_cutoffFrequency >= AudioStandards.SampleRate)
+            if (_cutoffFrequency >= AudioStandards.SampleRate / 2)
                 return;
 
             var filter = filters[Source];

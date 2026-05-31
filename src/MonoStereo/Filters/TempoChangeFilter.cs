@@ -45,7 +45,6 @@ namespace MonoStereo.Filters
 
         private float speed = float.NaN;
         private float pitch = float.NaN;
-        private float pitchCache = float.NaN;
 
         public override void Apply(MonoStereoProvider provider)
         {
@@ -106,6 +105,6 @@ namespace MonoStereo.Filters
             return read;
         }
 
-        public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShiftFilter.PitchShift(pitchCache, shifters[Source], buffer, offset, samplesRead);
+        public override void PostProcess(float[] buffer, int offset, int samplesRead) => PitchShiftFilter.PitchShift(pitch, shifters[Source], buffer, offset, samplesRead);
     }
 }
