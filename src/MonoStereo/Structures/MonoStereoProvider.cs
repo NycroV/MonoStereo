@@ -143,8 +143,8 @@ namespace MonoStereo.Structures
             if (Volume == 1f)
                 return;
 
-            for (int i = offset; i < samplesRead; i++)
-                buffer[i] *= Volume;
+            for (int i = 0; i < samplesRead; i++)
+                buffer[offset + i] *= Volume;
         }
     }
 }
