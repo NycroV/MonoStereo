@@ -15,12 +15,11 @@ protected override void Initialize()
 }
 ```
 
-You also have access to a few extra variables on startup, namely `masterVolume`, `musicVolume`, and `soundEffectVolume` - as well as `latency`, `deviceNumber`, and `bufferCount`.
+You also have access to a few extra variables on startup, namely `masterVolume`, `musicVolume`, and `soundEffectVolume` - as well as `latency` and `deviceNumber`.
 
 - `masterVolume`, `musicVolume`, and `soundEffectVolume` are pretty self explanatory. These values should be `float`s that range from 0-1, with 1 being max volume, and 0 being mute. If you want to change the music, sound, or master volumes later, they are available with the properties `MonoStereoEngine.MasterMixer.Volume`, `MonoStereoEngine.AudioMixers<Song>().Volume`, and `MonoStereoEngine.AudioMixers<SoundEffect>().Volume`.
 - `latency` is the desired latency, in milliseconds, before audio reaches the output device. Increasing this can create a slight delay in audio playback, but helps to reduce choppy audio when lots of post-processing effects are applied. The device default (achieved by passing in null) is typically fine, but you may find yourself increasing or decreasing this value depending on your use-case.
-- `deviceNumber` is the index of the output device you want to play to. -1 uses the system default.
-- `bufferCount` is the number of buffers that you want to split your latency among. Increasing this can allow for lower latencies, but is more likely to cause clipping with certain effects. It is highly recommended to keep this value at the default 8.
+- `deviceNumber` is the index of the output device you want to play to. Pass in null to use the system default.
 
 By default, this output should have everything you need. However, if you want a different way to output audio - for example, maybe you want to broadcast it to a remote source - you can create a custom class that implements the `IMonoStereoOutput` interface.
 From there, you can use the following code:
