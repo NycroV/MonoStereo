@@ -37,7 +37,7 @@ namespace MonoStereo.Decoding
 
         public override long Length { get; }
 
-        private long audioOffset = 0L;
+        private readonly long audioOffset = 0L;
         public override long Position
         {
             get => (Stream.Position - audioOffset) / WaveFormat.BlockAlign * WaveFormat.Channels;
