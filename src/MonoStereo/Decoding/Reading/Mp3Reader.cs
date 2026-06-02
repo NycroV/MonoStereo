@@ -1,11 +1,7 @@
-﻿using MP3Sharp;
+﻿using ATL;
+using MP3Sharp;
 using NAudio.Wave;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonoStereo.Decoding
 {
@@ -14,28 +10,38 @@ namespace MonoStereo.Decoding
     {
         public Mp3Reader(Stream baseStream)
         {
+            long streamPosition = baseStream.Position;
+            Track track = new(baseStream);
+            var length = track.DurationMs;
+            audioOffset = track.TechnicalInformation.AudioDataOffset;
+            baseStream.Position = streamPosition;
+
             Stream = new(baseStream);
+            baseStream.Position = audioOffset;
 
             // Mp3 reader will always be 16 bit stereo.
             WaveFormat = WaveFormat.CreateCustomFormat(
                 WaveFormatEncoding.Pcm,
                 Stream.Frequency,
-                AudioStandards.ChannelCount,
-                Stream.Frequency / 1000 * sizeof(short) * AudioStandards.ChannelCount,
-                sizeof(short) * AudioStandards.ChannelCount,
+                Stream.ChannelCount,
+                (int)(Stream.Frequency / 1000f * sizeof(short) * Stream.ChannelCount),
+                sizeof(short) * Stream.ChannelCount,
                 sizeof(short) * 8);
+
+            Length = (long)(length * (WaveFormat.SampleRate / 1000d) * WaveFormat.BlockAlign);
         }
 
         private readonly MP3Stream Stream;
 
         public override WaveFormat WaveFormat { get; }
 
-        public override long Length => Stream.Length;
+        public override long Length { get; }
 
+        private long audioOffset = 0L;
         public override long Position
         {
-            get => Stream.Position / AudioStandards.BytesPerSample;
-            set => Stream.Position = value * AudioStandards.BytesPerSample;
+            get => (Stream.Position - audioOffset) / WaveFormat.BlockAlign * WaveFormat.Channels;
+            set => Stream.Position = (value / WaveFormat.Channels) * WaveFormat.BlockAlign + audioOffset;
         }
 
         public override int Read(byte[] buffer, int offset, int count) => Stream.Read(buffer, offset, count);
