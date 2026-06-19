@@ -259,28 +259,32 @@ public class UniversalAudioSource : ISeekableSongSource, ISeekableSoundEffectSou
         public int Read(float[] buffer, int offset, int count)
         {
             int samplesCopied = 0;
+            int read = 0;
 
-                do
+            do
+            {
+                long endIndex = Length;
+
+                if (IsLooped && LoopEnd != -1 && Position < LoopEnd)
+                    endIndex = LoopEnd;
+
+                long samplesAvailable = endIndex - Position;
+                long samplesRemaining = count - samplesCopied;
+
+                int samplesToCopy = (int)Math.Min(samplesAvailable, samplesRemaining);
+
+                if (samplesToCopy > 0)
                 {
-                    long endIndex = Length;
+                    read = OutputSource.Read(buffer, offset + samplesCopied, samplesToCopy);
+                    samplesCopied += read;
+                }
 
-                    if (IsLooped && LoopEnd != -1 && Position < LoopEnd)
-                        endIndex = LoopEnd;
-
-                    long samplesAvailable = endIndex - Position;
-                    long samplesRemaining = count - samplesCopied;
-
-                    int samplesToCopy = (int)Math.Min(samplesAvailable, samplesRemaining);
-
-                    if (samplesToCopy > 0)
-                        samplesCopied += OutputSource.Read(buffer, offset + samplesCopied, samplesToCopy);
-
-                    if (IsLooped && Position >= endIndex)
-                    {
-                        long startIndex = Math.Max(0, LoopStart);
-                        Position = startIndex;
-                    }
-                } while (IsLooped && samplesCopied < count);
+                if (IsLooped && Position >= endIndex)
+                {
+                    long startIndex = Math.Max(0, LoopStart);
+                    Position = startIndex;
+                }
+            } while (IsLooped && samplesCopied < count && read > 0);
 
             return samplesCopied;
         }

@@ -96,7 +96,7 @@ namespace MonoStereo.Sources.Songs
                 }
 
                 if (reader?.PlaybackState == PlaybackState.Playing)
-                    reader.readerLock.Execute(reader.Reader!.ReadAhead);
+                    reader.readerLock.Execute(() => reader.Reader!.ReadAhead());
 
                 if (i >= bufferedReaders.Count - 1)
                     i = -1;
@@ -131,6 +131,9 @@ namespace MonoStereo.Sources.Songs
             get => cachedPosition;
             set
             {
+                if (cachedPosition == value)
+                    return;
+
                 readerLock.Execute(() =>
                 {
                     Reader.ClearBuffer();

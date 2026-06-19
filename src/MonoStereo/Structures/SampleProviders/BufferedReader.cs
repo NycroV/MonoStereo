@@ -1,7 +1,7 @@
 ﻿using NAudio.Utils;
 using NAudio.Wave;
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace MonoStereo.Structures.SampleProviders
 {
@@ -23,7 +23,7 @@ namespace MonoStereo.Structures.SampleProviders
         public int BufferedSamples { get => sampleBuffer.Count; }
 
         private readonly QueuedLock clearBufferLock = new();
-        private readonly ConcurrentQueue<float> sampleBuffer = [];
+        private readonly Queue<float> sampleBuffer = [];
         
         public bool Disposing = false;
 
@@ -37,7 +37,7 @@ namespace MonoStereo.Structures.SampleProviders
             sampleProvider = source;
         }
 
-        public void ReadAhead()
+        public void ReadAhead(int overrideSampleRequest = 0)
         {
             clearBufferLock.Execute(() =>
             {
@@ -45,9 +45,13 @@ namespace MonoStereo.Structures.SampleProviders
                     return;
 
                 int samplesRequested = bufferLength - sampleBuffer.Count;
-                samplesRequested -= samplesRequested % WaveFormat.Channels;
+                if (overrideSampleRequest > 0)
+                    samplesRequested = overrideSampleRequest;
 
-                if (samplesRequested > 0)
+                else
+                    samplesRequested -= samplesRequested % WaveFormat.Channels;
+
+                if (samplesRequested >= AudioStandards.ReadBufferSize || (overrideSampleRequest > 0 && samplesRequested > 0))
                 {
                     inBuffer = BufferHelpers.Ensure(inBuffer, samplesRequested);
                     int read = sampleProvider.Read(inBuffer, 0, samplesRequested);
@@ -79,7 +83,7 @@ namespace MonoStereo.Structures.SampleProviders
 
                 else
                 {
-                    ReadAhead();
+                    ReadAhead(count - read);
 
                     if (!sourceSamplesAvailable)
                         break;
