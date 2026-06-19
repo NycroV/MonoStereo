@@ -111,7 +111,8 @@ namespace MonoStereo.Structures
 
         public virtual void Dispose()
         {
-            RemoveInput();
+            if (MonoStereoEngine.IsRunning)
+                RemoveInput();
 
             lock (_filters)
             {
