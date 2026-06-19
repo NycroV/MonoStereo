@@ -251,6 +251,7 @@ namespace MonoStereo
                 // After the `shouldShutdown` function has returned true,
                 // commence shutdown. This is done in a way such that the engine
                 // COULD be started again without the need for program reload.
+                IsRunning = false;
                 Output.Dispose();
                 MasterMixer.Dispose();
                 
@@ -258,7 +259,6 @@ namespace MonoStereo
                     mixer.Dispose();
 
                 audioMixers.Clear();
-                IsRunning = false;
             }
         }
 
