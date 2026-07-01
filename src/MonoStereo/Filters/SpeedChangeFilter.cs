@@ -31,6 +31,8 @@ namespace MonoStereo.Filters
             }
         }
 
+        public bool SkipResamplerAtNormalSpeed { get; set; } = false;
+
         public override void Apply(MonoStereoProvider provider)
         {
             var resampler = new WdlResampler();
@@ -50,7 +52,7 @@ namespace MonoStereo.Filters
 
         public override int ModifyRead(float[] buffer, int offset, int count)
         {
-            if (_speed == 1f)
+            if (_speed == 1f && SkipResamplerAtNormalSpeed)
                 return base.ModifyRead(buffer, offset, count);
 
             if (_speed == 0f)

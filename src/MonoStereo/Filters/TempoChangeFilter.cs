@@ -43,6 +43,8 @@ namespace MonoStereo.Filters
             }
         }
 
+        public bool SkipResamplerAtNormalSpeed { get; set; } = false;
+
         private float speed = float.NaN;
         private float pitch = float.NaN;
 
@@ -72,7 +74,7 @@ namespace MonoStereo.Filters
 
         public override int ModifyRead(float[] buffer, int offset, int count)
         {
-            if (speed == 1f)
+            if (speed == 1f && SkipResamplerAtNormalSpeed)
                 return base.ModifyRead(buffer, offset, count);
 
             if (speed == 0f)
