@@ -187,12 +187,14 @@ namespace MonoStereo
         /// <param name="shouldShutdown">The function to determine when the audio engine should shut down. Have the delegate return true when your game is being/has been closed.</param>
         /// <param name="masterVolume">The master mixer volume</param>
         /// <param name="audioMixerTypesAndVolumes">The types for which you want to set up mixers in <see cref="AudioMixers{T}"/>. Must all inherit from <see cref="MonoStereoProvider"/>.<br/>
-        /// Correct format is: <code> {
-        ///     [Type] = volume,
-        ///     [Type] = volume,
-        ///     ....
+        /// Correct format is:<br/>
+        /// <c>{<br/>
+        ///     [Type] = volume,<br/>
+        ///     [Type] = volume,<br/>
+        ///     ....<br/>
         /// }
-        /// </code> where all types inherit from <see cref="MonoStereoProvider"/></param>
+        /// </c><br/>
+        /// where all types inherit from <see cref="MonoStereoProvider"/></param>
         public static void InitializeCustomOutput(
             IMonoStereoOutput customOutput,
             Func<bool> shouldShutdown,
@@ -243,7 +245,7 @@ namespace MonoStereo
 
             catch (Exception ex)
             {
-                _playbackError = ex;
+                _playbackError = new AudioPlaybackException(ex);
             }
 
             finally
@@ -281,4 +283,9 @@ namespace MonoStereo
             }
         }
     }
+
+    /// <summary>
+    /// An exception that is throw when the MonoStereo playback thread encounters an unhandled error.
+    /// </summary>
+    public class AudioPlaybackException(Exception innerException) : Exception("Audio playback error occurred!", innerException);
 }
